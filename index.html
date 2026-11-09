@@ -1,43 +1,2199 @@
-<!-- ========== NOUVEAU HERO (remplace l'ancien .hero) ========== -->
-<section class="hero-new" id="hero">
-  <div class="hero-new-inner">
-    
-    <!-- Eyebrow -->
-    <p class="hero-eyebrow">
-      <span class="hero-eyebrow-line"></span>
-      Landes &amp; Pays Basque · Surf · Kite · Wind · Wingfoil
-    </p>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WildSpots — Moins de recherches. Plus de sessions.</title>
+<meta name="description" content="Trouve le bon spot de surf, kite, wind ou wingfoil dans les Landes et le Pays Basque, avec accès, hébergement, écoles et bons plans en quelques minutes.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="WildSpots — Moins de recherches. Plus de sessions.">
+<meta property="og:description" content="Trouve le bon spot de surf, kite, wind ou wingfoil dans les Landes et le Pays Basque, avec accès, hébergement, écoles et bons plans en quelques minutes.">
+<meta property="og:image" content="https://wildspots64.github.io/WildSpots/og-image.png">
+<meta property="og:url" content="https://wildspots64.github.io/WildSpots/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="WildSpots — Moins de recherches. Plus de sessions.">
+<meta name="twitter:description" content="Trouve le bon spot de surf, kite, wind ou wingfoil dans les Landes et le Pays Basque en quelques minutes.">
+<meta name="twitter:image" content="https://wildspots64.github.io/WildSpots/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=JetBrains+Mono:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --navy:#0B2436;
+    --navy-2:#123244;
+    --foam:#F7F4EC;
+    --sand:#E4D8B4;
+    --teal:#2A7F8A;
+    --coral:#E3572A;
+    --amber:#C98A2C;
+    --ink:#13262F;
+    --line: rgba(247,244,236,0.18);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--foam);
+    color:var(--ink);
+    font-family:'Work Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3, .display{
+    font-family:'Anton', sans-serif;
+    font-weight:400;
+    text-transform:uppercase;
+    letter-spacing:0.01em;
+    line-height:0.95;
+    margin:0;
+  }
+  .mono{
+    font-family:'JetBrains Mono', monospace;
+  }
+  a{color:inherit;}
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 28px;
+  }
 
-    <!-- Titre -->
-    <h1 class="hero-title">
-      Trouve le spot<br>
-      parfait en <em>2 minutes</em>
-    </h1>
+  /* NAV */
+  nav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(11,36,54,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  nav .wrap{
+    display:flex; align-items:center; justify-content:space-between;
+    height:64px;
+  }
+  .logo{
+    color:var(--foam);
+    font-family:'Anton', sans-serif;
+    font-size:1.3rem;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+    display:flex; align-items:baseline; gap:8px;
+  }
+  .logo span{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.62rem;
+    color:var(--sand);
+    text-transform:none;
+    letter-spacing:0.04em;
+  }
+  .nav-cta{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.75rem;
+    color:var(--foam);
+    border:1px solid var(--line);
+    padding:9px 16px;
+    border-radius:100px;
+    text-decoration:none;
+    letter-spacing:0.03em;
+    transition:background .2s ease, border-color .2s ease;
+  }
+  .nav-cta:hover{ background:var(--coral); border-color:var(--coral); }
+  button.nav-cta{ background:transparent; } /* bouton FR/EN : sans ça, fond gris clair + texte clair = illisible */
 
-    <!-- Sous-titre -->
-    <p class="hero-subtitle">
-      Conditions, hébergement, école et avis riders — tout au même endroit.
-    </p>
+  /* HERO */
+  .hero{
+    position:relative;
+    background:radial-gradient(120% 90% at 15% -10%, #16374c 0%, var(--navy) 55%, #081925 100%);
+    color:var(--foam);
+    overflow:hidden;
+    padding:40px 0 0;
+  }
 
-    <!-- CTAs -->
-    <div class="hero-actions">
-      <a href="#map-section" class="btn-hero-primary" id="cta-explore-map">
-        Explorer la carte
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 12h14M13 6l6 6-6 6"/>
-        </svg>
-      </a>
-      <button type="button" class="btn-hero-secondary" id="cta-recommended">
-        Voir les spots recommandés
-      </button>
+  .app-search{
+    display:flex; align-items:center; gap:10px;
+    background:rgba(247,244,236,0.08);
+    border:1px solid var(--line);
+    border-radius:100px;
+    padding:14px 18px;
+    margin-bottom:28px;
+    position:relative; z-index:2;
+  }
+  .app-search-icon{ font-size:1rem; opacity:0.7; }
+  .app-search input{
+    flex:1; background:none; border:none; outline:none;
+    color:var(--foam); font-family:'Work Sans', sans-serif; font-size:0.95rem;
+  }
+  .app-search input::placeholder{ color:rgba(247,244,236,0.5); }
+  .app-search-btn{
+    background:var(--coral); color:#fff; border:none; border-radius:50%;
+    width:34px; height:34px; font-size:1rem; cursor:pointer; flex-shrink:0;
+  }
+
+  .app-section-title{
+    font-family:'Anton', sans-serif; text-transform:uppercase; font-size:1.05rem;
+    color:var(--foam); margin-bottom:14px; position:relative; z-index:2;
+  }
+  .app-shortcuts{
+    display:flex; gap:22px; flex-wrap:wrap; margin-bottom:28px;
+    position:relative; z-index:2;
+  }
+
+  .app-banner{
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    background:var(--navy-2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:24px 26px;
+    text-decoration:none;
+    margin-bottom:20px;
+    position:relative; z-index:2;
+  }
+  .app-banner-eyebrow{
+    font-family:'JetBrains Mono', monospace; font-size:0.68rem; text-transform:uppercase;
+    letter-spacing:0.05em; color:var(--sand); margin-bottom:6px;
+  }
+  .app-banner-title{
+    font-family:'Anton', sans-serif; text-transform:uppercase; font-size:1.3rem;
+    color:var(--foam); line-height:1.1; margin-bottom:12px;
+  }
+  .app-banner-cta{
+    display:inline-block; background:var(--foam); color:var(--navy);
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:0.75rem;
+    padding:9px 18px; border-radius:100px;
+  }
+  .app-banner-icon{ font-size:2.4rem; flex-shrink:0; }
+
+  .app-card{
+    background:var(--foam); border-radius:12px; padding:20px 22px;
+    margin-bottom:32px; position:relative; z-index:2;
+  }
+  .app-card-label{
+    font-family:'JetBrains Mono', monospace; font-size:0.66rem; text-transform:uppercase;
+    letter-spacing:0.05em; color:#8a8a8a; margin-bottom:10px;
+  }
+  .app-card-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:12px; }
+  .app-card-name{ font-family:'Anton', sans-serif; text-transform:uppercase; font-size:1.2rem; color:var(--navy); }
+  .app-card-loc{ font-family:'JetBrains Mono', monospace; font-size:0.7rem; color:#8a8a8a; margin-top:4px; }
+  .app-card-score{ font-family:'Anton', sans-serif; font-size:1.5rem; color:var(--coral); flex-shrink:0; }
+  .app-card-tags{ display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap; }
+  .app-card-cta{
+    display:inline-block; background:var(--coral); color:#fff;
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:0.75rem;
+    padding:10px 20px; border-radius:100px; text-decoration:none;
+  }
+
+  .hero-grid{
+    display:grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap:40px;
+    align-items:center;
+    position:relative;
+    z-index:2;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.75rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--sand);
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:22px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:26px; height:1px; background:var(--coral);
+  }
+  .hero h1{
+    font-size:clamp(2.6rem, 6vw, 4.6rem);
+    color:var(--foam);
+  }
+  .hero h1 em{
+    font-style:normal;
+    color:var(--coral);
+  }
+  .hero p.lede{
+    font-size:1.08rem;
+    color:rgba(247,244,236,0.78);
+    max-width:46ch;
+    margin:26px 0 36px;
+    line-height:1.55;
+  }
+  .hero-ctas{ display:flex; gap:14px; flex-wrap:wrap; }
+  .btn-primary{
+    background:var(--coral);
+    color:var(--foam);
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.82rem;
+    letter-spacing:0.03em;
+    text-decoration:none;
+    padding:15px 26px;
+    border-radius:100px;
+    display:inline-flex; align-items:center; gap:10px;
+    transition:transform .18s ease, box-shadow .18s ease;
+    box-shadow:0 0 0 0 rgba(227,87,42,0.5);
+  }
+  .btn-primary:hover{ transform:translateY(-2px); box-shadow:0 10px 24px -8px rgba(227,87,42,0.6); }
+  .btn-ghost{
+    background:transparent;
+    color:var(--foam);
+    border:1px solid var(--line);
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.82rem;
+    text-decoration:none;
+    padding:15px 22px;
+    border-radius:100px;
+  }
+  .stat-row{
+    display:flex; gap:34px; margin-top:56px;
+    border-top:1px solid var(--line);
+    padding-top:22px;
+    flex-wrap:wrap;
+  }
+  .stat b{
+    display:block;
+    font-family:'Anton', sans-serif;
+    font-size:1.9rem;
+    color:var(--foam);
+  }
+  .stat span{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    color:var(--sand);
+  }
+
+  /* compass / signature */
+  .compass-wrap{ position:relative; display:flex; justify-content:center; align-items:center; z-index:2;}
+  .compass{ width:min(100%,380px); }
+  .coastline{
+    position:absolute; left:0; right:0; bottom:0; z-index:1;
+    line-height:0;
+    opacity:0.9;
+  }
+
+  /* PROBLEM */
+  .section{ padding:88px 0; }
+  .section-head{ max-width:640px; margin-bottom:48px; }
+  .section-head .eyebrow{ color:var(--teal); }
+  .section-head .eyebrow::before{ background:var(--teal); }
+  .section-head h2{ font-size:clamp(1.8rem,3.6vw,2.6rem); color:var(--navy); }
+  .section-head p{ color:#3f5460; line-height:1.6; margin-top:16px; font-size:1.02rem;}
+
+  .scatter-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+    background:var(--sand);
+    border:1px solid var(--sand);
+  }
+  .scatter-item{
+    background:var(--foam);
+    padding:26px 20px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    color:#6b5f43;
+  }
+  .scatter-item b{
+    display:block; font-family:'Work Sans',sans-serif; font-weight:600;
+    color:var(--ink); font-size:0.98rem; margin-bottom:6px;
+  }
+
+  /* MAP SECTION */
+  .map-section{ background:var(--navy-2); padding:88px 0; }
+  .map-section .section-head .eyebrow{ color:var(--amber); }
+  .map-section .section-head .eyebrow::before{ background:var(--amber); }
+  .map-section .section-head h2{ color:var(--foam); }
+  .map-section .section-head p{ color:rgba(247,244,236,0.7); }
+
+  .wrap-wide{ max-width:1400px; }
+
+  .filters-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.7rem;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--amber);
+    margin-bottom:14px;
+  }
+  .wizard-cta{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    width:100%;
+    background:linear-gradient(90deg, var(--coral), #F0895A);
+    border:none; border-radius:14px;
+    padding:20px 24px;
+    margin-bottom:28px;
+    font-family:'Anton', sans-serif; text-transform:uppercase; letter-spacing:0.01em;
+    font-size:1.15rem; color:#fff;
+    cursor:pointer;
+    box-shadow:0 12px 30px -10px rgba(227,87,42,0.55);
+  }
+  .wizard-cta:hover{ transform:translateY(-1px); }
+  .wizard-cta span:first-child{ font-size:1.3rem; }
+  .wizard-secondary-link{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    width:100%;
+    background:none; border:1px dashed var(--line);
+    border-radius:100px;
+    padding:11px 18px;
+    margin-bottom:28px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem; color:rgba(247,244,236,0.75);
+    cursor:pointer;
+  }
+  .wizard-secondary-link:hover{ border-color:var(--coral); color:var(--foam); }
+
+  .wizard-overlay{
+    position:fixed; inset:0; background:rgba(8,25,37,0.75);
+    z-index:3000;
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+  }
+  .wizard-modal{
+    background:var(--foam);
+    border-radius:16px;
+    max-width:480px; width:100%;
+    max-height:85vh; overflow-y:auto;
+    padding:32px 28px;
+  }
+  .wizard-progress{
+    display:flex; gap:6px; margin-bottom:20px;
+  }
+  .wizard-progress-dot{ flex:1; height:4px; border-radius:100px; background:#e6dfc9; }
+  .wizard-progress-dot.done{ background:var(--coral); }
+  .wizard-close{
+    float:right; background:none; border:none; font-size:1.3rem; color:#8a8a8a; cursor:pointer;
+  }
+  .wizard-title{ font-family:'Anton', sans-serif; text-transform:uppercase; font-size:1.4rem; color:var(--navy); margin:0 0 20px; clear:both; }
+  .wizard-options{ display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+  .wizard-option{
+    display:flex; align-items:center; gap:12px;
+    background:#fff; border:2px solid #e6dfc9; border-radius:12px;
+    padding:16px 18px;
+    font-family:'Work Sans', sans-serif; font-size:1rem; font-weight:600; color:var(--navy);
+    cursor:pointer; text-align:left;
+  }
+  .wizard-option:hover{ border-color:var(--coral); }
+  .wizard-option.selected{ border-color:var(--coral); background:#FDF1EC; }
+  .wizard-option span:first-child{ font-size:1.2rem; }
+  .wizard-next{
+    display:block; width:100%;
+    background:var(--coral); color:#fff; border:none; border-radius:100px;
+    padding:14px; font-family:'JetBrains Mono', monospace; font-weight:700; font-size:0.85rem;
+    cursor:pointer;
+  }
+  .wizard-next:disabled{ opacity:0.4; cursor:default; }
+  .wizard-back{
+    display:block; margin-top:10px; background:none; border:none;
+    color:#8a8a8a; font-family:'JetBrains Mono', monospace; font-size:0.75rem; cursor:pointer;
+    text-align:center; width:100%;
+  }
+  .wizard-results-banner{
+    display:flex; justify-content:space-between; align-items:center;
+    background:#FDF1EC; border:1px solid var(--coral);
+    border-radius:10px; padding:12px 16px; margin-bottom:14px;
+  }
+  .wizard-results-banner span{ font-size:0.85rem; color:var(--navy); font-weight:600; }
+  .wizard-reset-btn{
+    background:none; border:1px solid var(--navy); border-radius:100px;
+    padding:6px 14px; font-family:'JetBrains Mono', monospace; font-size:0.7rem; color:var(--navy); cursor:pointer;
+  }
+  .spot-row-match{
+    font-family:'JetBrains Mono', monospace; font-size:0.68rem; color:var(--coral); font-weight:700;
+    flex-shrink:0; margin-right:4px;
+  }
+
+  .filters-label-hero{
+    font-family:'Anton', sans-serif;
+    font-size:1.3rem;
+    text-transform:none;
+    letter-spacing:0.01em;
+    color:var(--coral);
+    margin-bottom:12px;
+  }
+  .filters{
+    display:flex; gap:22px; flex-wrap:wrap; margin-bottom:24px;
+  }
+  .filter-pill{
+    background:rgba(247,244,236,0.06);
+    border:1.5px solid var(--line);
+    border-radius:100px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    color:var(--foam);
+    font-family:'Work Sans', sans-serif; font-size:0.88rem; font-weight:600;
+    padding:12px 20px;
+    transition:all .15s ease;
+  }
+  .filter-pill:hover{ border-color:var(--amber); }
+  .filter-pill.active{ background:var(--foam); border-color:var(--foam) !important; color:var(--navy); }
+
+  .zone-search-wrap{ position:relative; margin-bottom:36px; z-index:500; isolation:isolate; }
+  .zone-search-wrap .app-search{ margin-bottom:0; cursor:pointer; }
+  .zone-search-icon-btn{
+    width:56px; height:56px; border-radius:50%;
+    background:rgba(227,87,42,0.12);
+    border:2px solid var(--coral);
+    color:var(--coral);
+    font-size:1.4rem;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .zone-search-icon-btn:hover{ background:rgba(227,87,42,0.2); }
+
+  .view-toggle{ display:flex; gap:8px; margin-bottom:14px; }
+  .view-toggle-btn{
+    display:flex; align-items:center; gap:6px;
+    background:rgba(247,244,236,0.06);
+    border:1.5px solid var(--line);
+    border-radius:100px;
+    padding:9px 18px;
+    color:rgba(247,244,236,0.7);
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem; font-weight:600;
+    cursor:pointer;
+  }
+  .view-toggle-btn.active{ background:var(--foam); border-color:var(--foam); color:var(--navy); }
+
+  #table-view{
+    flex:1.3; min-width:0; height:640px; overflow-y:auto;
+    background:var(--foam); border-radius:4px; border:1px solid var(--line);
+  }
+  .spot-row{
+    display:flex; align-items:center; gap:12px;
+    padding:14px 18px;
+    border-bottom:1px solid #e6dfc9;
+    cursor:pointer;
+  }
+  .spot-row:hover{ background:#F3EFDD; }
+  .spot-row:last-child{ border-bottom:none; }
+  .spot-row-sports{ display:flex; gap:4px; flex-shrink:0; }
+  .spot-row-sports .row-dot{
+    width:26px; height:26px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    color:#fff;
+  }
+  .spot-row-sports .row-dot svg{ width:14px; height:14px; }
+  .spot-row-main{ flex:1; min-width:0; }
+  .spot-row-name{ font-family:'Anton', sans-serif; text-transform:uppercase; font-size:0.98rem; color:var(--navy); line-height:1.2; }
+  .spot-row-meta{ font-family:'JetBrains Mono', monospace; font-size:0.68rem; color:#8a8a8a; margin-top:2px; }
+  .spot-row-score{ font-family:'Anton', sans-serif; font-size:1.15rem; color:var(--coral); flex-shrink:0; }
+  .spot-row-arrow{ color:#b3aea0; flex-shrink:0; }
+  .zone-search-hero{
+    padding:20px 26px;
+    border:2px solid var(--coral);
+    border-radius:16px;
+    background:rgba(227,87,42,0.08);
+    box-shadow:0 10px 30px -10px rgba(227,87,42,0.35);
+  }
+  .zone-search-hero .app-search-icon{ font-size:1.3rem; opacity:1; }
+  .zone-search-hero input{ font-size:1.1rem; font-weight:600; }
+  .zone-search-hero input::placeholder{ color:rgba(247,244,236,0.65); }
+  .zone-search-hero .app-search-caret{ font-size:1.1rem; opacity:0.9; }
+  .app-search-caret{ opacity:0.6; font-size:0.8rem; }
+  .zone-dropdown{
+    display:none;
+    position:absolute; top:calc(100% + 10px); left:0; right:0;
+    background:var(--foam);
+    max-height:360px;
+    overflow-y:auto;
+    border-radius:10px;
+    box-shadow:0 12px 32px -8px rgba(0,0,0,0.35);
+    padding:10px 0;
+    z-index:9999;
+    max-width:420px;
+  }
+  .zone-dropdown.open{ display:block; }
+  .zone-dropdown-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.64rem; text-transform:uppercase; letter-spacing:0.05em;
+    color:#8a8a8a; padding:8px 18px 4px;
+  }
+  .zone-option{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 18px;
+    font-size:0.92rem; color:var(--navy); font-weight:600;
+    cursor:pointer;
+  }
+  .zone-option:hover:not(.disabled){ background:#F3EFDD; }
+  .zone-option.disabled{ color:#b3aea0; cursor:default; font-weight:500; }
+  .soon-tag{
+    margin-left:auto;
+    font-style:normal;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.6rem; text-transform:uppercase; letter-spacing:0.03em;
+    background:#e6dfc9; color:#8a7a5c;
+    padding:2px 8px; border-radius:100px;
+  }
+  .filter-pill span:last-child{ color:rgba(247,244,236,0.75); }
+  .filter-pill.active span:last-child{ color:var(--foam); }
+
+  .map-layout{
+    display:flex; gap:20px; align-items:stretch;
+  }
+  #map{
+    flex:1.3;
+    height:640px;
+    min-width:0;
+    border-radius:4px;
+    border:1px solid var(--line);
+    position:relative;
+    z-index:1;
+  }
+  .spot-panel{
+    flex:1;
+    height:640px;
+    background:var(--foam);
+    border-radius:4px;
+    overflow-y:auto;
+    padding:0;
+  }
+  .panel-placeholder{
+    height:100%;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; gap:16px; padding:40px;
+  }
+  .panel-placeholder p{
+    color:#7d8b93; font-size:0.95rem; max-width:32ch; line-height:1.5;
+  }
+  .leaflet-popup-content-wrapper{
+    border-radius:6px;
+    font-family:'Work Sans', sans-serif;
+  }
+  .panel-card{ padding:32px 34px 40px; }
+  .panel-hero{
+    height:8px;
+    margin:-32px -34px 24px;
+  }
+  .panel-card h4{
+    font-family:'Anton', sans-serif;
+    text-transform:uppercase;
+    font-size:1.9rem;
+    color:var(--navy);
+    margin:0 0 4px;
+    line-height:1.02;
+  }
+  .popup-loc{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.78rem;
+    color:#8a8a8a;
+    letter-spacing:0.03em;
+    margin-bottom:14px;
+  }
+  .popup-tags{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+  .popup-tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    padding:5px 12px;
+    border-radius:100px;
+    color:#fff;
+    display:inline-flex; align-items:center; gap:5px;
+  }
+  .popup-tag svg{ flex-shrink:0; width:14px; height:14px; }
+  .popup-desc{ font-size:1.05rem; color:var(--ink); line-height:1.5; margin:0 0 20px; font-weight:500; }
+
+  .panel-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:14px 24px;
+    margin-bottom:6px;
+  }
+  .popup-row{
+    display:flex; flex-direction:column; gap:3px;
+    font-size:0.98rem; padding:0;
+  }
+  .popup-row span:first-child{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:#8a8a8a;
+  }
+  .popup-row span:last-child{ color:var(--navy); line-height:1.4; font-weight:500; }
+  .popup-around{
+    font-size:0.95rem; color:#3f5460; line-height:1.5;
+    margin-top:14px;
+  }
+  .popup-around span{
+    display:block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:#8a8a8a;
+    margin-bottom:4px;
+  }
+
+  .popup-links{
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .link-card{
+    display:flex; flex-direction:column; gap:2px;
+    background:#fff; border:1px solid #e6dfc9; border-radius:8px;
+    padding:14px 16px;
+    text-decoration:none;
+  }
+  .link-card:hover{ border-color:var(--teal); }
+  .link-card .link-kind{
+    font-family:'JetBrains Mono', monospace; font-size:0.66rem;
+    text-transform:uppercase; letter-spacing:0.04em; color:#8a8a8a;
+  }
+  .link-card .link-name{ font-size:1rem; font-weight:700; color:var(--navy); }
+  .link-card .link-type{ font-size:0.85rem; color:#3f5460; }
+  .link-card .link-distance{ font-size:0.8rem; color:var(--teal); font-weight:600; display:block; margin-top:2px; }
+  .link-card .link-price{ font-size:0.8rem; color:#8a8a8a; margin-top:2px; }
+  .link-card .link-price i{ font-style:normal; }
+  .link-card .link-cta{
+    font-family:'JetBrains Mono', monospace; font-size:0.7rem; color:var(--teal);
+    margin-top:6px;
+  }
+
+  /* Hébergement = action prioritaire pour le voyageur qui prépare un trip : carte dominante */
+  .link-card-primary{
+    border:2px solid var(--coral);
+    background:#FDF1EC;
+  }
+  .link-card-primary:hover{ border-color:var(--coral); }
+  .link-card-primary .link-name{ font-size:1.08rem; }
+  .link-card-primary .link-cta{
+    display:inline-block;
+    background:var(--coral); color:#fff; font-weight:700;
+    padding:9px 18px; border-radius:100px; margin-top:10px;
+  }
+
+  /* provenance badges */
+  .section-label{
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    margin:28px 0 12px;
+    padding-top:22px;
+    border-top:1px solid #e6dfc9;
+  }
+  .section-label:first-of-type{ border-top:none; padding-top:0; margin-top:0; }
+  .section-label b{
+    font-family:'Anton', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    font-size:1.05rem;
+    color:var(--navy);
+  }
+
+  .accordion{ margin-top:8px; }
+  .accordion-item{ border-top:1px solid #e6dfc9; }
+  .accordion-item:last-child{ border-bottom:1px solid #e6dfc9; }
+  .accordion-header{
+    width:100%;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:none; border:none; cursor:pointer;
+    padding:18px 2px;
+    text-align:left;
+  }
+  .accordion-header b{
+    font-family:'Anton', sans-serif;
+    text-transform:uppercase;
+    letter-spacing:0.02em;
+    font-size:1.02rem;
+    color:var(--navy);
+  }
+  .accordion-header-right{ display:flex; align-items:center; gap:10px; flex-shrink:0; }
+  .accordion-chevron{ color:#b3aea0; font-size:0.8rem; }
+  .accordion-body{ padding:0 2px 20px; }
+
+  .quick-cards{
+    display:flex; flex-wrap:wrap; gap:8px;
+    margin-bottom:20px;
+  }
+  .quick-card{
+    display:flex; align-items:center; gap:7px;
+    background:#fff; border:1px solid #e6dfc9; border-radius:10px;
+    padding:10px 14px;
+    font-family:'Work Sans', sans-serif; font-size:0.8rem; font-weight:600;
+    color:var(--navy); cursor:pointer;
+  }
+  .quick-card:hover{ border-color:var(--coral); }
+  .quick-card span{ font-size:1rem; }
+  .budget-note{ font-size:0.76rem; color:#8a8a8a; margin:6px 0 0; }
+  .budget-total{ font-size:1rem; color:var(--navy); margin:10px 0 4px; }
+  .budget-total b{ color:var(--coral); font-family:'Anton', sans-serif; font-size:1.2rem; }
+
+  .trust-legend-wrap{ position:relative; margin-bottom:24px; text-align:right; z-index:600; isolation:isolate; }
+  .trust-legend-toggle{
+    background:none; border:1px solid var(--line); border-radius:100px;
+    padding:6px 12px;
+    font-family:'JetBrains Mono', monospace; font-size:0.66rem;
+    color:rgba(247,244,236,0.7); cursor:pointer;
+  }
+  .trust-legend-toggle:hover{ border-color:var(--amber); color:var(--foam); }
+  .trust-legend{
+    display:none;
+    position:absolute; top:calc(100% + 6px); right:0;
+    flex-direction:column; gap:6px;
+    background:#F3EFDD; border-radius:8px;
+    padding:10px 12px;
+    width:min(280px, 80vw);
+    box-shadow:0 10px 24px -8px rgba(0,0,0,0.3);
+    z-index:400;
+    text-align:left;
+  }
+  .trust-legend.open{ display:flex; }
+  .trust-legend-item{
+    display:flex; align-items:center; gap:6px;
+    font-size:0.66rem; color:#3f5460; line-height:1.25;
+  }
+  .trust-legend-item .badge{
+    flex-shrink:0;
+    font-size:0.56rem;
+    padding:3px 8px;
+  }
+  .validate-btn{
+    margin-left:auto;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    letter-spacing:0.02em;
+    background:#fff;
+    border:1px solid #e6dfc9;
+    border-radius:100px;
+    padding:5px 12px;
+    color:var(--navy);
+    cursor:pointer;
+    display:flex; align-items:center; gap:5px;
+    transition:all .15s ease;
+  }
+  .validate-btn:hover:not(:disabled){ border-color:var(--coral); }
+  .validate-btn.validated{
+    background:var(--coral); border-color:var(--coral); color:#fff; cursor:default;
+  }
+  .badge{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.68rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.03em;
+    padding:5px 12px;
+    border-radius:100px;
+    color:#fff;
+  }
+  .badge-ia{ background:var(--teal); }
+  .badge-web{ background:var(--amber); }
+  .badge-communaute{ background:var(--coral); }
+  .badge-ambassadeur{ background:var(--navy); border:1px solid #C9A227; color:#F7D77E; }
+
+  .section-controls{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    margin:-6px 0 4px;
+  }
+  .ambassador-toggle{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.7rem; color:#8a8a8a;
+    cursor:pointer; text-decoration:underline dotted;
+  }
+  .ambassador-toggle:hover{ color:var(--navy); }
+  .ambassador-form{
+    display:flex; gap:8px; margin-top:8px; width:100%;
+  }
+  .ambassador-form input{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.8rem;
+    border:1px solid #d8d0ba; border-radius:6px;
+    padding:7px 10px; flex:1;
+  }
+  .ambassador-form button{
+    background:var(--navy); color:#F7D77E; border:none; border-radius:100px;
+    font-family:'JetBrains Mono', monospace; font-size:0.72rem;
+    padding:7px 16px; cursor:pointer;
+  }
+
+  .popup-transport, .popup-tip{ font-size:0.98rem; color:#3f5460; line-height:1.55; }
+  .popup-tip{ font-style:italic; background:#F3EFDD; padding:12px 16px; border-radius:8px; }
+
+  /* community comments */
+  .comment-list{ display:flex; flex-direction:column; gap:10px; margin-bottom:14px; }
+  .comment-item{
+    background:#fff; border:1px solid #e6dfc9; border-radius:8px; padding:12px 14px;
+  }
+  .comment-item .comment-head{
+    display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;
+  }
+  .comment-item b{ font-size:0.92rem; color:var(--navy); }
+  .comment-item .comment-date{
+    font-family:'JetBrains Mono', monospace; font-size:0.68rem; color:#8a8a8a;
+  }
+  .comment-item p{ margin:0; font-size:0.92rem; color:#3f5460; line-height:1.5; }
+  .no-comments{ font-size:0.92rem; color:#8a8a8a; font-style:italic; margin:0 0 14px; }
+  .comment-form{ display:flex; flex-direction:column; gap:10px; }
+  .comment-form input, .comment-form textarea{
+    font-family:'Work Sans', sans-serif;
+    font-size:0.95rem;
+    border:1px solid #d8d0ba;
+    border-radius:6px;
+    padding:10px 12px;
+    resize:vertical;
+  }
+  .comment-form textarea{ min-height:70px; }
+  .comment-form button{
+    align-self:flex-start;
+    background:var(--coral);
+    color:#fff;
+    border:none;
+    border-radius:100px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.8rem;
+    padding:10px 22px;
+    cursor:pointer;
+  }
+  .comment-form button:hover{ opacity:0.9; }
+  .comment-note{
+    font-size:0.75rem; color:#8a8a8a; margin-top:10px; line-height:1.4;
+  }
+
+  .suggestion-form{ display:flex; flex-direction:column; gap:10px; }
+  .suggestion-form select, .suggestion-form input, .suggestion-form textarea{
+    font-family:'Work Sans', sans-serif;
+    font-size:0.95rem;
+    border:1px solid #d8d0ba;
+    border-radius:6px;
+    padding:10px 12px;
+    resize:vertical;
+    background:#fff;
+  }
+  .suggestion-form textarea{ min-height:56px; }
+  .suggestion-form button{
+    align-self:flex-start;
+    background:var(--teal);
+    color:#fff;
+    border:none;
+    border-radius:100px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.8rem;
+    padding:10px 22px;
+    cursor:pointer;
+  }
+  .suggestion-form button:hover{ opacity:0.9; }
+
+  .map-legend{
+    display:flex; gap:18px; flex-wrap:wrap; margin-top:18px;
+    font-family:'JetBrains Mono', monospace; font-size:0.7rem;
+    color:rgba(247,244,236,0.65);
+  }
+  .map-legend .dot{ width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px; }
+
+  /* PROCESS */
+  .process{ display:grid; grid-template-columns:repeat(3,1fr); gap:0; position:relative;}
+  .process::before{
+    content:"";
+    position:absolute; top:38px; left:8%; right:8%; height:1px;
+    background:repeating-linear-gradient(90deg, var(--sand) 0 8px, transparent 8px 16px);
+    z-index:0;
+  }
+  .process-step{ position:relative; padding:0 24px 0 0; z-index:1; }
+  .process-step .num{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.75rem; color:var(--coral);
+    background:var(--foam);
+    display:inline-block; padding-right:10px;
+  }
+  .process-step h3{ font-size:1.35rem; color:var(--navy); margin:14px 0 10px; }
+  .process-step p{ color:#3f5460; line-height:1.55; font-size:0.95rem; }
+
+  /* FICHE PREVIEW */
+  .fiche-preview{
+    display:grid; grid-template-columns:0.9fr 1.1fr; gap:48px; align-items:center;
+  }
+  .fiche-card{
+    background:var(--navy);
+    color:var(--foam);
+    border-radius:6px;
+    padding:28px;
+    position:relative;
+    overflow:hidden;
+  }
+  .fiche-card::after{
+    content:"";
+    position:absolute; inset:0;
+    background:linear-gradient(135deg, rgba(227,87,42,0.12), transparent 60%);
+    pointer-events:none;
+  }
+  .fiche-top{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px;}
+  .fiche-top h3{ font-size:1.5rem; }
+  .fiche-score{
+    font-family:'JetBrains Mono', monospace;
+    text-align:right;
+  }
+  .fiche-score b{ font-size:1.8rem; color:var(--coral); display:block; }
+  .fiche-score span{ font-size:0.6rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--sand); }
+  .fiche-tags{ display:flex; gap:6px; margin-bottom:20px; flex-wrap:wrap; }
+  .fiche-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:14px 20px;
+    font-family:'JetBrains Mono', monospace; font-size:0.78rem;
+    border-top:1px solid var(--line); padding-top:18px;
+  }
+  .fiche-grid div span{ display:block; color:rgba(247,244,236,0.55); font-size:0.65rem; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:4px;}
+
+  /* FOOTER */
+  footer{
+    background:var(--navy);
+    color:rgba(247,244,236,0.6);
+    padding:56px 0 30px;
+  }
+  .footer-top{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    flex-wrap:wrap; gap:24px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:36px; margin-bottom:24px;
+  }
+  footer h2{ color:var(--foam); font-size:clamp(1.6rem,3vw,2.2rem); max-width:16ch; }
+  .footer-bottom{
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+    font-family:'JetBrains Mono', monospace; font-size:0.72rem;
+  }
+
+  @media (max-width: 860px){
+    .scatter-grid{ grid-template-columns:repeat(2,1fr); }
+    .process{ grid-template-columns:1fr; gap:34px; }
+    .process::before{ display:none; }
+    .fiche-preview{ grid-template-columns:1fr; }
+    .map-layout{ flex-direction:column; }
+    #map{ height:380px; flex:none; }
+    #table-view{ height:380px; flex:none; }
+    .spot-panel{ height:520px; flex:none; }
+    .panel-card{ padding:24px 20px 32px; }
+    .panel-card h4{ font-size:1.5rem; }
+    .panel-grid{ grid-template-columns:1fr 1fr; }
+  }
+  @media (max-width: 480px){
+    .wrap{ padding:0 18px; }
+    .logo{ font-size:1.05rem; }
+    #nav-tagline{ display:none; }
+    .nav-cta{ font-size:0.68rem; padding:8px 12px; }
+    .map-section{ padding:24px 0 56px; }
+    .filters-label{ font-size:0.64rem; }
+    .filters-label-hero{ font-size:1.05rem; }
+    .filters{ gap:10px; }
+    .filter-pill{ width:auto; padding:9px 14px; font-size:0.76rem; }
+    .wizard-cta{ padding:16px 16px; font-size:0.95rem; gap:8px; }
+    .zone-dropdown{ max-height:280px; font-size:0.9rem; }
+    .zone-option{ padding:12px 14px; font-size:0.88rem; }
+    .view-toggle{ gap:6px; }
+    .view-toggle-btn{ padding:8px 14px; font-size:0.72rem; }
+    .trust-legend{ padding:9px 10px; }
+    .trust-legend-item{ font-size:0.62rem; }
+    .quick-cards{ gap:6px; }
+    .quick-card{ padding:8px 11px; font-size:0.74rem; }
+    .accordion-header{ padding:15px 2px; }
+    .accordion-header b{ font-size:0.92rem; }
+    .panel-grid{ grid-template-columns:1fr; }
+    .panel-card{ padding:24px 18px 30px; }
+    .panel-card h4{ font-size:1.3rem; }
+    .section{ padding:56px 0; }
+    .scatter-grid{ grid-template-columns:1fr; }
+    .fiche-card{ padding:20px; }
+    .fiche-top h3{ font-size:1.2rem; }
+    .footer-top{ flex-direction:column; align-items:flex-start; gap:16px; }
+    #map{ height:320px; }
+    #table-view{ height:320px; }
+    .spot-panel{ height:460px; }
+    .spot-row{ padding:12px 14px; gap:8px; }
+    .spot-row-name{ font-size:0.88rem; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    *{ transition:none !important; }
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     SPRINT 1 UX — hero mobile-first (titre, sports, carte d'office)
+     ═══════════════════════════════════════════════════════════ */
+
+  /* Titre principal (H1) et sous-titre : plus compacts */
+  .section-head h1{ font-size:clamp(1.85rem, 7vw, 2.9rem); color:var(--navy); }
+  .map-section .section-head h1{ color:var(--foam); }
+  .map-section .section-head{ margin-bottom:22px; }
+  .map-section .section-head .eyebrow{ margin-bottom:14px; }
+  .map-section .section-head p{ margin-top:14px; }
+
+  /* Bouton principal : en ligne sur ordinateur (collé en bas sur smartphone, voir plus bas) */
+  .cta-bar{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin:0 0 28px; }
+  .cta-bar .btn-primary{ border:none; cursor:pointer; font-size:0.9rem; padding:15px 28px; }
+  .cta-secondary{
+    background:none; border:none; padding:8px 4px; cursor:pointer;
+    font-family:'JetBrains Mono', monospace; font-size:0.78rem; color:var(--sand);
+    text-decoration:underline; text-underline-offset:4px;
+  }
+  .cta-secondary:hover{ color:var(--foam); }
+
+  /* Boutons de sport avec icônes (zone tactile ≥ 44 px) */
+  .filters{ gap:10px; margin-bottom:14px; }
+  .filter-pill{ gap:8px; min-height:44px; padding:10px 16px; white-space:nowrap; }
+  .filter-pill .pill-icon{ display:inline-flex; width:20px; height:20px; flex-shrink:0; }
+  .filter-pill .pill-icon svg{ width:20px; height:20px; }
+  .filter-pill[data-key="all"].active .pill-icon{ color:var(--navy) !important; }
+  .filter-pill.active span:last-child{ color:var(--navy); } /* corrige un texte clair sur fond clair */
+
+  /* Ligne destination + bascule Carte / Liste */
+  .controls-row{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px 14px; margin-bottom:14px; }
+  .zone-search-wrap{ margin-bottom:0; }
+  .view-toggle{ margin-bottom:0; }
+  .zone-pill{
+    display:inline-flex; align-items:center; gap:8px;
+    min-height:44px; padding:8px 16px;
+    background:rgba(247,244,236,0.06);
+    border:1.5px solid var(--coral); border-radius:100px;
+    color:var(--foam);
+    font-family:'Work Sans', sans-serif; font-size:0.88rem; font-weight:600;
+    cursor:pointer;
+  }
+  .zone-pill:hover{ background:rgba(227,87,42,0.14); }
+  .zone-dropdown{ right:auto; width:min(340px, calc(100vw - 36px)); max-width:none; max-height:min(440px, 70vh); }
+
+  /* Encart « Bientôt » : prévenir quand de nouvelles destinations ouvrent */
+  .soon-box{ padding:4px 18px 14px; }
+  .soon-box p{ margin:4px 0 10px; font-size:0.84rem; line-height:1.4; color:#3f5460; font-weight:500; }
+  .soon-form{ display:flex; flex-direction:column; gap:8px; }
+  .soon-form input{
+    width:100%; padding:11px 12px;
+    border:1px solid #d8d0ba; border-radius:8px; background:#fff; color:var(--navy);
+    font-family:'Work Sans', sans-serif; font-size:16px; /* 16 px : évite le zoom automatique sur iPhone */
+  }
+  .soon-form button{
+    background:var(--coral); color:#fff; border:none; border-radius:100px;
+    padding:12px 16px; cursor:pointer;
+    font-family:'JetBrains Mono', monospace; font-size:0.78rem; font-weight:700; letter-spacing:0.02em;
+  }
+  .soon-form button:disabled{ opacity:.6; cursor:default; }
+  .soon-consent{ font-size:0.66rem; line-height:1.35; color:#8a8a8a; }
+  .soon-msg{ font-size:0.8rem; font-weight:600; min-height:1.1em; }
+  .soon-msg.ok{ color:var(--teal); }
+  .soon-msg.err{ color:#b3401b; }
+
+  /* Indice posé sur la carte : « Touche un spot pour voir sa fiche » */
+  .map-hint{
+    /* décalé à droite du bouton de zoom (≈ 44 px de large) pour ne pas se chevaucher */
+    position:absolute; left:56px; top:12px; z-index:650;
+    width:max-content; max-width:calc(100% - 68px); text-align:center;
+    padding:8px 12px; border-radius:18px;
+    background:var(--navy); color:var(--foam); border:1px solid var(--line);
+    font-family:'JetBrains Mono', monospace; font-size:0.68rem; letter-spacing:0; line-height:1.3;
+    text-wrap:balance; /* si le texte passe sur 2 lignes, elles sont équilibrées (pas de mot seul) */
+    box-shadow:0 8px 20px -8px rgba(0,0,0,0.5);
+    pointer-events:none;
+    transition:opacity .25s ease, transform .25s ease;
+  }
+  .map-hint::before{ content:"👆"; margin-right:8px; }
+  .map-hint.gone{ opacity:0; transform:translateY(-6px); }
+
+  /* Légende des badges : sous la carte, s'ouvre vers le haut */
+  .trust-row{ display:flex; align-items:center; flex-wrap:wrap; gap:8px 14px; margin-top:16px; }
+  .trust-row-text{ font-size:0.8rem; line-height:1.4; color:rgba(247,244,236,0.78); }
+  /* z-index bas : la légende doit rester SOUS la barre du bas (z-index 450) quand on fait défiler */
+  .trust-legend-wrap{ margin-bottom:0; text-align:left; z-index:5; }
+  .zone-search-wrap{ scroll-margin-top:76px; }
+  .trust-legend{ top:auto; bottom:calc(100% + 8px); right:auto; left:0; }
+
+  /* Quand on saute vers la carte / la liste / la fiche, on laisse la place de la barre du haut */
+  #map, #table-view, .spot-panel{ scroll-margin-top:76px; }
+
+  @media (max-width: 860px){
+    body{ padding-bottom:112px; } /* place pour la barre du bas */
+    .cta-bar{
+      position:fixed; left:0; right:0; bottom:0; z-index:450;
+      flex-direction:column; align-items:stretch; flex-wrap:nowrap; gap:2px; margin:0;
+      padding:10px 18px calc(10px + env(safe-area-inset-bottom));
+      background:rgba(11,36,54,0.94);
+      -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+      border-top:1px solid var(--line);
+    }
+    .cta-bar .btn-primary{ width:100%; justify-content:center; min-height:52px; font-size:0.95rem; }
+    .cta-secondary{ align-self:center; padding:6px 8px; font-size:0.74rem; }
+    /* Boutons de sport : une seule ligne qu'on fait défiler du doigt */
+    .filters{
+      flex-wrap:nowrap; overflow-x:auto;
+      margin-left:-28px; margin-right:-28px; padding:2px 28px 6px;
+      scrollbar-width:none; -webkit-overflow-scrolling:touch; scroll-snap-type:x proximity;
+      scroll-padding:0 28px; /* sinon l'aimantation colle le 1er bouton au bord de l'écran */
+    }
+    .filters::-webkit-scrollbar{ display:none; }
+    .filter-pill{ flex:0 0 auto; scroll-snap-align:start; }
+    #map{ height:clamp(300px, 46vh, 440px); }
+    .zone-dropdown{ max-height:min(420px, 60vh); }
+  }
+  @media (max-width: 480px){
+    .filters{ margin-left:-18px; margin-right:-18px; padding-left:18px; padding-right:18px; scroll-padding:0 18px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo">WildSpots <span id="nav-tagline">Moins de recherches. Plus de sessions.</span></div>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <button type="button" id="lang-toggle" class="nav-cta" style="cursor:pointer; font-family:'JetBrains Mono',monospace;" onclick="toggleLang()">EN</button>
+    </div>
+  </div>
+</nav>
+
+<section class="map-section" id="carte" style="padding-top:32px;">
+  <div class="wrap wrap-wide">
+    <div class="section-head">
+      <div class="eyebrow" id="map-eyebrow">Surf · Kite · Wind · Wingfoil</div>
+      <h1 id="map-title">Le bon spot.<br>Sans y passer des heures.</h1>
+      <p id="map-sub">Accès, hébergement, écoles et bons plans de chaque spot. Landes et Pays Basque.</p>
     </div>
 
-    <!-- Micro-preuve -->
-    <div class="hero-proof">
-      <span class="hero-proof-item">25 spots</span>
-      <span class="hero-proof-dot">·</span>
-      <span class="hero-proof-item">Validés par la communauté</span>
+    <!-- Bouton principal : en ligne sous le titre sur ordinateur, collé en bas de l'écran sur smartphone -->
+    <div class="cta-bar" id="cta-bar">
+      <button type="button" class="btn-primary" id="cta-explore">Explorer la carte</button>
+      <button type="button" class="cta-secondary" id="cta-list">Voir la liste</button>
     </div>
 
+    <div class="filters" id="filters"></div>
+
+    <div class="controls-row">
+      <div class="zone-search-wrap">
+        <button type="button" class="zone-pill" id="zone-cta-btn">
+          <span>📍</span> <span id="zone-cta-label">Landes · Pays Basque</span> <span class="app-search-caret">▾</span>
+        </button>
+        <div class="zone-dropdown" id="zone-dropdown">
+          <div class="zone-dropdown-label" id="zone-dropdown-label-active">Disponible maintenant</div>
+          <div class="zone-option active" data-zone="all">🏄 <span>Landes · Pays Basque</span></div>
+          <div class="zone-dropdown-label" id="zone-dropdown-label-soon">Bientôt</div>
+          <div class="soon-box">
+            <p id="soon-text">D'autres destinations arrivent. Laisse ton email pour être prévenu de la prochaine ouverture.</p>
+            <form class="soon-form" id="soon-form" novalidate>
+              <input type="email" id="soon-email" autocomplete="email" inputmode="email" placeholder="ton@email.com" maxlength="120" required>
+              <input type="text" id="soon-wish" placeholder="Destination souhaitée (optionnel)" maxlength="80">
+              <!-- Champ piège invisible : seuls les robots le remplissent -->
+              <input type="text" id="soon-website" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;">
+              <button type="submit" id="soon-btn">Être prévenu</button>
+              <div class="soon-consent" id="soon-consent">Ton email sert uniquement à te prévenir de l'ouverture de nouvelles destinations.</div>
+              <div class="soon-msg" id="soon-msg" role="status"></div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="view-toggle">
+        <button type="button" class="view-toggle-btn active" id="view-btn-map">🗺️ <span id="view-label-map">Carte</span></button>
+        <button type="button" class="view-toggle-btn" id="view-btn-table">📋 <span id="view-label-table">Liste</span></button>
+      </div>
+    </div>
+
+    <div class="map-layout">
+      <div id="map"></div>
+      <div id="table-view" style="display:none;"></div>
+      <aside id="spot-panel" class="spot-panel">
+        <div class="panel-placeholder">
+          <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="18" stroke="#d8d0ba" stroke-width="1.5" stroke-dasharray="3 5"/><circle cx="20" cy="20" r="3" fill="#d8d0ba"/></svg>
+          <p id="panel-placeholder-text">Choisis un spot sur la carte pour afficher sa fiche complète : conditions, transport, hébergements, écoles et avis.</p>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Légende des badges : sous la carte, repliée par défaut -->
+    <div class="trust-row">
+      <span class="trust-row-text" id="trust-row-text">Chaque info porte un badge : IA, Communauté ou Ambassadeur.</span>
+      <div class="trust-legend-wrap">
+        <button type="button" class="trust-legend-toggle" id="trust-legend-toggle">ℹ️ <span id="trust-legend-toggle-label">Comment lire les badges ?</span></button>
+        <div class="trust-legend" id="trust-legend">
+          <span class="trust-legend-item"><span class="badge badge-ia" id="legend-badge-ia">IA</span> <span id="legend-text-ia">Info générée automatiquement, à vérifier</span></span>
+          <span class="trust-legend-item"><span class="badge badge-communaute" id="legend-badge-communaute">✓ Communauté</span> <span id="legend-text-communaute">Confirmée par des riders qui y sont allés</span></span>
+          <span class="trust-legend-item"><span class="badge badge-ambassadeur" id="legend-badge-ambassadeur">🛡️ Ambassadeur</span> <span id="legend-text-ambassadeur">Certifiée par un ambassadeur WildSpots</span></span>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
+
+
+<footer>
+  <div class="wrap">
+    <div class="footer-top">
+      <h2 id="footer-title">WildSpots — projet en cours de validation.</h2>
+      <a class="btn-primary" href="#carte" id="footer-cta">Revoir la carte ↑</a>
+    </div>
+    <div class="footer-bottom">
+      <span id="footer-tag1">WILDSPOTS // PILOTE</span>
+      <span id="footer-tag2">25 SPOTS · INFOS IA À VÉRIFIER · LANDES / PAYS BASQUE</span>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+  const SPORT_COLORS = { surf:"#E3572A", kite:"#2A7F8A", wind:"#C98A2C", wingfoil:"#8C7FD1" };
+  const SPORT_LABELS = { surf:"Surf", kite:"Kite", wind:"Wind", wingfoil:"Wingfoil" };
+
+  // ── Traductions de l'interface statique ──
+  const UI = {
+    fr: {
+      navTagline: "Moins de recherches. Plus de sessions.", navCta: "Voir la carte →",
+      heroEyebrow: "Landes · Pays Basque — prépare ton trip",
+      heroTitle: 'Un trip prêt,<br>pas juste un <em>spot.</em>',
+      heroLede: "Tu pars surfer, kiter, faire du wind ou du wingfoil dans les Landes ou au Pays Basque ? WildSpots réunit le spot, l'école, l'hébergement et le trajet — pour préparer ton séjour sans jongler entre dix onglets.",
+      heroCtaPrimary: "Préparer mon trip ↓", heroCtaGhost: "Comment ça marche",
+      stat1: "Spots référencés", stat2: "Sports couverts", stat3: "Territoires",
+      heroSearchPlaceholder: "Où veux-tu aller ? (ex. Hossegor, Biarritz...)",
+      appShortcutsTitle: "Pour toi",
+      bannerEyebrow: "Trip à préparer ?", bannerTitle: "Choisis ton spot à l'avance", bannerCta: "Explorer la carte →",
+      featuredLabel: "Spot du moment", featuredCta: "Voir la fiche →",
+      mapEyebrow: "Surf · Kite · Wind · Wingfoil", mapTitle: 'Le bon spot.<br>Sans y passer des heures.',
+      mapSub: "Accès, hébergement, écoles et bons plans de chaque spot. Landes et Pays Basque.",
+      ctaExplore: "Explorer la carte", ctaList: "Voir la liste",
+      mapHint: "Touche un spot pour voir sa fiche",
+      trustRow: "Chaque info porte un badge : IA, Communauté ou Ambassadeur.",
+      soonText: "D'autres destinations arrivent. Laisse ton email pour être prévenu de la prochaine ouverture.",
+      soonEmailPh: "ton@email.com", soonWishPh: "Destination souhaitée (optionnel)", soonBtn: "Être prévenu",
+      soonConsent: "Ton email sert uniquement à te prévenir de l'ouverture de nouvelles destinations.",
+      soonInvalid: "Cet email n'a pas l'air valide.", soonThanks: "Merci ! On te prévient dès l'ouverture.",
+      soonError: "Oups, l'envoi n'a pas marché. Réessaie dans un instant.", soonDemo: "Mode démo : email non enregistré.",
+      mapIntro: "Sport, niveau, hébergement, école, transport — filtre et compare pour trouver le spot qui te correspond, pas juste le plus proche sur la carte.",
+      panelPlaceholder: "Choisis un spot sur la carte pour afficher sa fiche complète : conditions, transport, hébergements, écoles et avis.",
+      filterAll: "Tous", filtersLabel: "2. Sport", filtersLabelZone: "1. Destination", filtersLabelStep3: "3. Go", zoneAll: "Toutes les zones",
+      viewMap: "Carte", viewTable: "Liste",
+      zoneActiveLabel: "Landes · Pays Basque", zoneAvailableNow: "Disponible maintenant", zoneComingSoon: "Bientôt", soonTag: "Bientôt",
+      processEyebrow: "Comment ça marche", processTitle: "De la carte au sac à dos",
+      step1Title: "Explorer", step1Desc: "Filtrer les spots par sport, niveau et saison sur une carte unique du littoral.",
+      step2Title: "Comparer", step2Desc: "Ouvrir une fiche par spot : conditions types, ambiance, accès, ce qu'il y a autour.",
+      step3Title: "Partir", step3Desc: "Retrouver logements, écoles et loueurs adaptés au spot choisi, sans agence.",
+      ficheEyebrow: "Fiche spot", ficheTitle: "Ce que chaque point contient",
+      ficheDesc: "Cet aperçu montre une version condensée. Sur la vraie fiche (clique un point sur la carte), tu retrouves aussi le niveau de confiance par section, les avis et les propositions de la communauté.",
+      ficheScoreLabel: "Score global", ficheLabel1: "Niveau", ficheVal1: "Confirmé / Expert",
+      ficheLabel2: "Saison", ficheVal2: "Août — Novembre", ficheLabel3: "Houle",
+      ficheLabel4: "Ambiance", ficheVal4: "Compétitive, très fréquenté",
+      footerTitle: "WildSpots — projet en cours de validation.", footerCta: "Revoir la carte ↑",
+      footerTag1: "WILDSPOTS // PILOTE", footerTag2: n => `${n} SPOTS · INFOS IA À VÉRIFIER · LANDES / PAYS BASQUE`,
+      // panneau dynamique
+      secTechnique: "Fiche technique", secTransport: "Transport", secBonPlan: "Bon plan", secBudget: "Budget hébergement",
+      rowBudgetMin: "Budget min (par nuit)", rowBudgetMoyen: "Budget moyen (par nuit)",
+      budgetNote: "Estimation IA pour 2 personnes, hébergement uniquement — à vérifier sur le site.",
+      rowHebergement: "Hébergement", rowCours: n => `${n} cours`, rowLocation: "Location de matériel", rowCourses: "Courses", rowTotal: "Total estimé",
+      budgetFullNote: "Estimation IA basée sur tes réponses au quiz — à ajuster selon tes besoins réels.",
+      cardSpot: "Spot", cardTransport: "Transport", cardHebergement: "Hébergement", cardEcole: "École", cardBudget: "Budget",
+      wizardCtaLabel: "Trouver le meilleur spot pour moi",
+      wizardWhoTitle: "Avec qui pars-tu ?", wizardWhoSolo: "Seul", wizardWhoCouple: "Couple", wizardWhoFamily: "Famille", wizardWhoFriends: "Amis",
+      wizardPrioTitle: "Qu'est-ce qui est important ?", wizardPrioWalk: "Tout à pied", wizardPrioCheap: "Pas cher", wizardPrioProgress: "Progression", wizardPrioNightlife: "Vie nocturne", wizardPrioNature: "Nature", wizardPrioQuiet: "Peu de monde",
+      wizardDurationTitle: "Combien de temps ?", wizardDurationWeekend: "Week-end", wizardDurationWeek: "1 semaine", wizardDurationTwoWeeks: "2 semaines",
+      wizardNext: "Suivant →", wizardBack: "← Retour",
+      wizardResultsLabel: "Tes spots recommandés", wizardReset: "Refaire le quiz",
+      secEcole: "École / location de matériel", secHebergement: "Hébergement",
+      secAvis: "Avis de la communauté", secSuggest: "Vous connaissez mieux ?",
+      rowNiveau: "Niveau", rowSaison: "Saison", rowConditions: "Conditions", rowAmbiance: "Ambiance",
+      rowScore: "Score", rowAcces: "Accès", rowAutour: "Autour du spot",
+      linkVerifie: "Lien vérifié web", linkEcole: "École / location", linkHebergement: "Hébergement",
+      linkSiteOfficiel: "Voir le site officiel →", linkTarifs: "Voir tarifs & disponibilités →",
+      estimationIA: "· estimation IA",
+      badgeIA: "IA", badgeCommunaute: c => `✓ Communauté · ${c}`, badgeAmbassadeur: "🛡️ Validé ambassadeur",
+      legendIA: "Info générée automatiquement, à vérifier",
+      legendCommunaute: "Confirmée par des riders qui y sont allés",
+      legendAmbassadeur: "Certifiée par un ambassadeur WildSpots",
+      trustLegendToggle: "Comment lire les badges ?",
+      btnConfirm: c => `⭐ Je confirme · ${c}`, btnConfirmed: c => `⭐ Validé · ${c}`,
+      ambassadorToggle: "🛡️ Ambassadeur WildSpots ?", ambassadorPlaceholder: "Code ambassadeur",
+      ambassadorConfirm: "Confirmer", ambassadorWrong: "Code incorrect",
+      commentPlaceholderName: "Votre prénom", commentPlaceholderText: "Conditions du jour, affluence, conseil...",
+      commentPublish: "Publier", noComments: "Aucun retour communauté pour l'instant — soyez le premier à partager vos conditions du jour.",
+      commentNoteOn: "Vos avis et validations sont enregistrés et visibles par tous les visiteurs.",
+      commentNoteOff: "Supabase non configuré : avis conservés le temps de la session uniquement (voir README.md).",
+      suggCatHeb: "Hébergement", suggCatEcole: "École (cours)", suggCatLoc: "Location de matériel",
+      suggName: "Nom de l'établissement", suggUrl: "Lien (site officiel, optionnel)",
+      suggNote: "Pourquoi tu le recommandes (optionnel)", suggAuthor: "Votre prénom (optionnel)",
+      suggBtn: "Proposer", suggNameRequired: "Nom requis",
+      suggThanks: n => `Merci ${n} ! Ta proposition a été transmise`, suggDemo: " (mode démo, non sauvegardée)"
+    },
+    en: {
+      navTagline: "Less searching. More sessions.", navCta: "View map →",
+      heroEyebrow: "Landes · Basque Country — plan your trip",
+      heroTitle: 'A trip ready to go,<br>not just a <em>spot.</em>',
+      heroLede: "Heading out to surf, kite, wind or wingfoil in the Landes or Basque Country? WildSpots brings together the spot, the school, the accommodation and how to get there — so you can plan your trip without juggling ten tabs.",
+      heroCtaPrimary: "Plan my trip ↓", heroCtaGhost: "How it works",
+      stat1: "Spots listed", stat2: "Sports covered", stat3: "Regions",
+      heroSearchPlaceholder: "Where do you want to go? (e.g. Hossegor, Biarritz...)",
+      appShortcutsTitle: "For you",
+      bannerEyebrow: "Trip to plan?", bannerTitle: "Pick your spot ahead of time", bannerCta: "Explore the map →",
+      featuredLabel: "Featured spot", featuredCta: "See full profile →",
+      mapEyebrow: "Surf · Kite · Wind · Wingfoil", mapTitle: 'The right spot.<br>Without hours of searching.',
+      mapSub: "Access, stays, schools and local tips for every spot. Landes and Basque Country.",
+      ctaExplore: "Explore the map", ctaList: "See the list",
+      mapHint: "Tap a spot to see its profile",
+      trustRow: "Every piece of info carries a badge: AI, Community or Ambassador.",
+      soonText: "More destinations are coming. Leave your email to hear about the next opening.",
+      soonEmailPh: "you@email.com", soonWishPh: "Destination you'd like (optional)", soonBtn: "Notify me",
+      soonConsent: "Your email is only used to tell you when new destinations open.",
+      soonInvalid: "That email doesn't look valid.", soonThanks: "Thanks! We'll let you know when it opens.",
+      soonError: "Oops, sending failed. Please try again in a moment.", soonDemo: "Demo mode: email not saved.",
+      mapIntro: "Sport, level, accommodation, school, transport — filter and compare to find the spot that fits you, not just the closest one on the map.",
+      panelPlaceholder: "Pick a spot on the map to see its full profile: conditions, transport, accommodation, schools and reviews.",
+      filterAll: "All", filtersLabel: "2. Sport", filtersLabelZone: "1. Destination", filtersLabelStep3: "3. Go", zoneAll: "All areas",
+      viewMap: "Map", viewTable: "List",
+      zoneActiveLabel: "Landes · Basque Country", zoneAvailableNow: "Available now", zoneComingSoon: "Coming soon", soonTag: "Soon",
+      processEyebrow: "How it works", processTitle: "From the map to your backpack",
+      step1Title: "Explore", step1Desc: "Filter spots by sport, level and season on a single coastal map.",
+      step2Title: "Compare", step2Desc: "Open each spot's profile: typical conditions, vibe, access, what's around.",
+      step3Title: "Go", step3Desc: "Find accommodation, schools and rental shops matched to your spot, no agency needed.",
+      ficheEyebrow: "Spot profile", ficheTitle: "What's in every point",
+      ficheDesc: "This preview shows a condensed version. On the real profile (click a point on the map), you'll also find the trust level per section, plus community reviews and suggestions.",
+      ficheScoreLabel: "Overall score", ficheLabel1: "Level", ficheVal1: "Advanced / Expert",
+      ficheLabel2: "Season", ficheVal2: "August — November", ficheLabel3: "Swell",
+      ficheLabel4: "Vibe", ficheVal4: "Competitive, very busy",
+      footerTitle: "WildSpots — project in validation phase.", footerCta: "Back to the map ↑",
+      footerTag1: "WILDSPOTS // PILOT", footerTag2: n => `${n} SPOTS · AI INFO TO CHECK · LANDES / BASQUE COUNTRY`,
+      secTechnique: "Spot profile", secTransport: "Transport", secBonPlan: "Tip", secBudget: "Accommodation budget",
+      rowBudgetMin: "Min budget (per night)", rowBudgetMoyen: "Average budget (per night)",
+      budgetNote: "AI estimate for 2 people, accommodation only — check the official site for exact rates.",
+      rowHebergement: "Accommodation", rowCours: n => `${n} lessons`, rowLocation: "Gear rental", rowCourses: "Groceries", rowTotal: "Estimated total",
+      budgetFullNote: "AI estimate based on your quiz answers — adjust to your actual needs.",
+      cardSpot: "Spot", cardTransport: "Transport", cardHebergement: "Stay", cardEcole: "School", cardBudget: "Budget",
+      wizardCtaLabel: "Find the best spot for me",
+      wizardWhoTitle: "Who's coming with you?", wizardWhoSolo: "Solo", wizardWhoCouple: "Couple", wizardWhoFamily: "Family", wizardWhoFriends: "Friends",
+      wizardPrioTitle: "What matters most?", wizardPrioWalk: "Everything walkable", wizardPrioCheap: "Cheap", wizardPrioProgress: "Progression", wizardPrioNightlife: "Nightlife", wizardPrioNature: "Nature", wizardPrioQuiet: "Few people",
+      wizardDurationTitle: "How long?", wizardDurationWeekend: "Weekend", wizardDurationWeek: "1 week", wizardDurationTwoWeeks: "2 weeks",
+      wizardNext: "Next →", wizardBack: "← Back",
+      wizardResultsLabel: "Your recommended spots", wizardReset: "Retake the quiz",
+      secEcole: "School / gear rental", secHebergement: "Accommodation",
+      secAvis: "Community reviews", secSuggest: "Know a better spot?",
+      rowNiveau: "Level", rowSaison: "Season", rowConditions: "Conditions", rowAmbiance: "Vibe",
+      rowScore: "Score", rowAcces: "Access", rowAutour: "Around the spot",
+      linkVerifie: "Web-verified link", linkEcole: "School / rental", linkHebergement: "Accommodation",
+      linkSiteOfficiel: "See official site →", linkTarifs: "See rates & availability →",
+      estimationIA: "· AI estimate",
+      badgeIA: "AI", badgeCommunaute: c => `✓ Community · ${c}`, badgeAmbassadeur: "🛡️ Ambassador verified",
+      legendIA: "Auto-generated info, worth double-checking",
+      legendCommunaute: "Confirmed by riders who've been there",
+      legendAmbassadeur: "Certified by a WildSpots ambassador",
+      trustLegendToggle: "How to read the badges?",
+      btnConfirm: c => `⭐ I confirm · ${c}`, btnConfirmed: c => `⭐ Confirmed · ${c}`,
+      ambassadorToggle: "🛡️ WildSpots ambassador?", ambassadorPlaceholder: "Ambassador code",
+      ambassadorConfirm: "Confirm", ambassadorWrong: "Wrong code",
+      commentPlaceholderName: "Your first name", commentPlaceholderText: "Today's conditions, crowd, tips...",
+      commentPublish: "Post", noComments: "No community feedback yet — be the first to share today's conditions.",
+      commentNoteOn: "Your reviews and votes are saved and visible to every visitor.",
+      commentNoteOff: "Supabase not configured: reviews are kept for this session only (see README.md).",
+      suggCatHeb: "Accommodation", suggCatEcole: "School (lessons)", suggCatLoc: "Gear rental",
+      suggName: "Establishment name", suggUrl: "Link (official site, optional)",
+      suggNote: "Why you'd recommend it (optional)", suggAuthor: "Your first name (optional)",
+      suggBtn: "Suggest", suggNameRequired: "Name required",
+      suggThanks: n => `Thanks ${n}! Your suggestion has been sent`, suggDemo: " (demo mode, not saved)"
+    }
+  };
+
+  let lang = "fr";
+
+  function t(key, ...args){
+    const val = UI[lang][key];
+    return typeof val === "function" ? val(...args) : val;
+  }
+
+  function applyStaticTranslations(){
+    // Petits utilitaires : un élément absent ne fait plus planter toute la traduction
+    const setText = (id, key, ...args) => { const el = document.getElementById(id); if (el) el.textContent = t(key, ...args); };
+    const setHTML = (id, key) => { const el = document.getElementById(id); if (el) el.innerHTML = t(key); };
+    const setPlaceholder = (id, key) => { const el = document.getElementById(id); if (el) el.placeholder = t(key); };
+
+    document.documentElement.lang = lang;
+
+    // Barre du haut
+    setText('nav-tagline', 'navTagline');
+    const langBtn = document.getElementById('lang-toggle');
+    if (langBtn) langBtn.textContent = lang === 'fr' ? 'EN' : 'FR';
+
+    // En-tête (titre sur deux lignes : on utilise innerHTML pour garder le <br>)
+    setText('map-eyebrow', 'mapEyebrow');
+    setHTML('map-title', 'mapTitle');
+    setText('map-sub', 'mapSub');
+    setText('cta-explore', 'ctaExplore');
+    setText('cta-list', 'ctaList');
+    setText('map-hint', 'mapHint');
+
+    // Boutons de sport, destination et bascule Carte / Liste
+    const filterAllLabel = document.getElementById('filter-label-all');
+    if (filterAllLabel) {
+      filterAllLabel.textContent = t('filterAll');
+      const allPill = filterAllLabel.closest('.filter-pill');
+      if (allPill) { allPill.title = t('filterAll'); allPill.setAttribute('aria-label', t('filterAll')); }
+    }
+    setText('zone-cta-label', 'zoneActiveLabel');
+    setText('zone-dropdown-label-active', 'zoneAvailableNow');
+    setText('zone-dropdown-label-soon', 'zoneComingSoon');
+    const zoneOptionLabel = document.querySelector('.zone-option[data-zone="all"] span');
+    if (zoneOptionLabel) zoneOptionLabel.textContent = t('zoneActiveLabel');
+    setText('view-label-map', 'viewMap');
+    setText('view-label-table', 'viewTable');
+
+    // Encart « Bientôt » (formulaire d'email)
+    setText('soon-text', 'soonText');
+    setPlaceholder('soon-email', 'soonEmailPh');
+    setPlaceholder('soon-wish', 'soonWishPh');
+    setText('soon-btn', 'soonBtn');
+    setText('soon-consent', 'soonConsent');
+    const soonMsgEl = document.getElementById('soon-msg');
+    if (soonMsgEl && soonMsgEl.dataset.key) soonMsgEl.textContent = t(soonMsgEl.dataset.key);
+
+    // Fiche (texte d'attente) et légende des badges
+    setText('panel-placeholder-text', 'panelPlaceholder');
+    setText('trust-row-text', 'trustRow');
+    setText('legend-badge-ia', 'badgeIA');
+    setText('legend-text-ia', 'legendIA');
+    const legendCommunaute = document.getElementById('legend-badge-communaute');
+    if (legendCommunaute) legendCommunaute.textContent = `✓ ${lang === 'fr' ? 'Communauté' : 'Community'}`;
+    setText('legend-text-communaute', 'legendCommunaute');
+    const legendAmbassadeur = document.getElementById('legend-badge-ambassadeur');
+    if (legendAmbassadeur) legendAmbassadeur.textContent = `🛡️ ${lang === 'fr' ? 'Ambassadeur' : 'Ambassador'}`;
+    setText('legend-text-ambassadeur', 'legendAmbassadeur');
+    setText('trust-legend-toggle-label', 'trustLegendToggle');
+
+    // Pied de page
+    setText('footer-title', 'footerTitle');
+    setText('footer-cta', 'footerCta');
+    setText('footer-tag1', 'footerTag1');
+    setText('footer-tag2', 'footerTag2', spots.length);
+  }
+
+  window.toggleLang = function(){
+    lang = lang === 'fr' ? 'en' : 'fr';
+    applyStaticTranslations();
+    if (currentOpenIdx !== null) openSpot(currentOpenIdx);
+    if (typeof currentView !== 'undefined' && currentView === 'table') renderTableView();
+  };
+
+  const spots = [
+    {name:"Biscarrosse-Plage", commune:"Biscarrosse, Landes", lat:44.4536, lng:-1.2650, sports:["surf"], level:"Tous niveaux", season:"Sept–Mai", conditions:"Houle NW, beach-break sur bancs mobiles", access:"Parking direct, 2 min à pied", ambiance:"Familial, plage large", around:"Écoles de surf, campings à proximité", desc:"Plage océane large, beach-break régulier, spot familial.", score:7.0, school:{name:"École La Vigie", url:"https://www.la-vigie-biscarrosse.com/"}, stay:{name:"Camping Club Plage Sud", url:"https://www.ms-vacances.com/camping-campeole/camping-plage-sud/decouvrir-le-camping/", distance:"~5 min à pied du spot"}, transport:"Gare TER la plus proche : Facture-Biganos (~30 min) ; aéroport de Bordeaux-Mérignac à ~1h15 ; Vélodyssée sur place.", tip:"Session tôt le matin, la houle a tendance à monter l'après-midi.",
+      en:{level:"All levels", season:"Sept–May", conditions:"NW swell, beach-break on shifting sandbanks", access:"Direct parking, 2 min walk", ambiance:"Family-friendly, wide beach", around:"Surf schools, campsites nearby", desc:"Wide ocean beach, regular beach-break, family-friendly spot.", transport:"Nearest train station: Facture-Biganos (~30 min); Bordeaux-Mérignac airport ~1h15; Vélodyssée bike path on-site.", tip:"Surf early morning, the swell tends to build up in the afternoon."}},
+    {name:"Mimizan Plage", commune:"Mimizan, Landes", lat:44.2033, lng:-1.2919, sports:["surf"], level:"Débutant à confirmé", season:"Sept–Mai", conditions:"Houle NW/W, puissant, bancs changeants", access:"Parking front de mer", ambiance:"Station animée l'été", around:"Écoles de surf, commerces, location matériel", desc:"Beach-break puissant, bancs de sable changeants.", score:7.3, school:{name:"École Silver Coast", url:"https://silvercoast-surf.com/"}, stay:{name:"Hébergements — Office de tourisme de Mimizan", url:"https://www.mimizan-tourisme.com/", distance:"Variable selon l'hébergement choisi"}, transport:"Gare TER à Morcenx (~25 min) ; aéroport de Bordeaux-Mérignac à ~1h ; Vélodyssée sur place.", tip:"Privilégier la plage Nord (Remember), moins prise d'assaut que la plage Sud en été.",
+      en:{level:"Beginner to advanced", season:"Sept–May", conditions:"NW/W swell, powerful, shifting sandbanks", access:"Seafront parking", ambiance:"Lively resort in summer", around:"Surf schools, shops, gear rental", desc:"Powerful beach-break with shifting sandbanks.", transport:"Train station in Morcenx (~25 min); Bordeaux-Mérignac airport ~1h; Vélodyssée bike path on-site.", tip:"Head to North beach (Remember), less crowded than South beach in summer."}},
+    {name:"Contis-Plage", commune:"Saint-Julien-en-Born, Landes", lat:44.0906, lng:-1.3238, sports:["surf"], level:"Tous niveaux", season:"Oct–Avril", conditions:"Houle W, vagues rondes et régulières", access:"Parking + courte marche dunes", ambiance:"Calme, peu fréquenté", around:"Phare, camping, peu de services l'hiver", desc:"Spot moins fréquenté, vagues rondes, phare en fond.", score:6.8, school:{name:"École Max Respect Contis", url:"https://www.max-respect.com/fr/surf-contis.htm"}, stay:{name:"Hébergements — Côte Landes Nature Tourisme", url:"https://www.cotelandesnaturetourisme.com/", distance:"Variable selon l'hébergement choisi"}, transport:"Gare TER à Morcenx (~30 min) ; aéroport de Bordeaux-Mérignac à ~1h20 ; peu de bus, voiture conseillée.", tip:"Monter au phare de Contis après la session pour la vue sur la côte.",
+      en:{level:"All levels", season:"Oct–April", conditions:"W swell, round and regular waves", access:"Parking + short walk through the dunes", ambiance:"Quiet, low crowds", around:"Lighthouse, campsite, few services in winter", desc:"Less crowded spot, round waves, lighthouse in the background.", transport:"Train station in Morcenx (~30 min); Bordeaux-Mérignac airport ~1h20; few buses, a car is recommended.", tip:"Climb the Contis lighthouse after your session for the coastal view."}},
+    {name:"Étang de Léon", commune:"Léon, Landes", lat:43.8850, lng:-1.2960, sports:["kite","wind","wingfoil"], level:"Débutant", season:"Avril–Oct", conditions:"Plan d'eau plat, vent thermique régulier", access:"Base nautique, accès direct plage du lac", ambiance:"Cool, orienté apprentissage", around:"Écoles de kite/wing, location matériel sur site", desc:"Lagune plate protégée, idéale pour apprendre en sécurité.", score:7.8, school:{name:"Foil in Landes (wingfoil, lac de Léon)", url:"https://www.foilinlandes.com/"}, stay:{name:"Hébergements — Côte Landes Nature Tourisme", url:"https://www.cotelandesnaturetourisme.com/", distance:"Variable selon l'hébergement choisi"}, transport:"Gare TER à Castets ou Linxe (~20 min) ; aéroport de Bordeaux-Mérignac à ~1h ; accès facile en voiture, peu de transports en commun.", tip:"Réserver son créneau en semaine, le lac est pris d'assaut le week-end en été.",
+      en:{level:"Beginner", season:"April–Oct", conditions:"Flat water, steady thermal wind", access:"Watersports base, direct lake beach access", ambiance:"Chill, learning-focused", around:"Kite/wing schools, on-site gear rental", desc:"Sheltered flat lagoon, ideal for learning safely.", transport:"Train station in Castets or Linxe (~20 min); Bordeaux-Mérignac airport ~1h; easy by car, little public transport.", tip:"Book on a weekday — the lake gets packed on summer weekends."}},
+    {name:"Vielle-Saint-Girons", commune:"Saint-Girons-Plage, Landes", lat:43.9294, lng:-1.3500, sports:["surf"], level:"Tous niveaux", season:"Sept–Mai", conditions:"Houle NW, beach-break exposé", access:"Parking + traversée dunes boisées", ambiance:"Sauvage, nature préservée", around:"Campings nature, peu de commerces", desc:"Plage sauvage encadrée de dunes, moins de monde à l'eau.", score:7.1, school:{name:"École Max Respect St Girons", url:"https://www.max-respect.com/fr/surf-saint-girons.htm"}, stay:{name:"Camping L'Océane", url:"https://www.camping-oceane.fr/", distance:"~10 min en voiture"}, transport:"Gare TER à Castets (~20 min) ; aéroport de Bordeaux-Mérignac à ~1h05 ; voiture recommandée, peu de commerces sur place.", tip:"Prévoir eau et ombre : peu de services sur place, surtout hors saison.",
+      en:{level:"All levels", season:"Sept–May", conditions:"NW swell, exposed beach-break", access:"Parking + walk through wooded dunes", ambiance:"Wild, unspoiled nature", around:"Nature campsites, few shops", desc:"Wild beach framed by dunes, fewer people in the water.", transport:"Train station in Castets (~20 min); Bordeaux-Mérignac airport ~1h05; a car is recommended, few services on-site.", tip:"Bring water and shade — few services on-site, especially off-season."}},
+    {name:"Moliets-et-Maa", commune:"Moliets-et-Maa, Landes", lat:43.8462, lng:-1.3833, sports:["surf"], level:"Tous niveaux", season:"Sept–Mai", conditions:"Houle NW/W, beach-break régulier", access:"Parking direct plage", ambiance:"Village familial", around:"Écoles de surf, golf, pistes cyclables", desc:"Beach-break régulier, bon spot progression.", score:7.2, school:{name:"Maa Surf School & Shop", url:"https://www.molietsetmaasurfschool.com/"}, stay:{name:"Camping Les Cigales", url:"https://ecoledesurfmoliets.surf/surf-camp-moliets/", distance:"~5 min à pied du spot"}, transport:"Gare TGV de Dax à ~35 min ; aéroport de Biarritz à ~50 min ; bus RDTL l'été.", tip:"Combiner surf le matin et golf ou vélo l'après-midi, tout est à proximité.",
+      en:{level:"All levels", season:"Sept–May", conditions:"NW/W swell, regular beach-break", access:"Direct beach parking", ambiance:"Family-friendly village", around:"Surf schools, golf course, bike paths", desc:"Regular beach-break, good spot for progression.", transport:"Dax TGV station ~35 min; Biarritz airport ~50 min; RDTL bus in summer.", tip:"Combine morning surf with afternoon golf or cycling — everything's close by."}},
+    {name:"Messanges", commune:"Messanges, Landes", lat:43.8090, lng:-1.3960, sports:["surf"], level:"Débutant à intermédiaire", season:"Sept–Mai", conditions:"Houle W, vagues clémentes", access:"Parking + digue piétonne", ambiance:"Familial, écoles nombreuses", around:"Nombreuses écoles de surf, campings", desc:"Vagues clémentes, plusieurs écoles de surf sur place.", score:7.0, school:{name:"Messanges Surf School", url:"https://messanges-surf-school.com/"}, stay:{name:"La Dune Surf Camp", url:"https://www.ladunesurfcamp.com/", distance:"~5-10 min à pied de la plage"}, transport:"Gare TGV de Dax à ~35 min ; aéroport de Biarritz à ~55 min ; bus RDTL l'été.", tip:"Réserver son cours tôt, les places partent vite en juillet-août.",
+      en:{level:"Beginner to intermediate", season:"Sept–May", conditions:"W swell, gentle waves", access:"Parking + pedestrian dyke", ambiance:"Family-friendly, many schools", around:"Many surf schools, campsites", desc:"Gentle waves, several surf schools on-site.", transport:"Dax TGV station ~35 min; Biarritz airport ~55 min; RDTL bus in summer.", tip:"Book your lesson early — slots fill up fast in July-August."}},
+    {name:"Vieux-Boucau", commune:"Vieux-Boucau-les-Bains, Landes", lat:43.7870, lng:-1.4020, sports:["surf","wind"], level:"Tous niveaux", season:"Sept–Mai", conditions:"Houle NW, courant du lac influent", access:"Parking centre station", ambiance:"Station balnéaire vivante", around:"Commerces, restaurants, port d'Albret proche", desc:"Plage centrale animée, courant du lac à proximité.", score:7.4, school:{name:"École ESCF Vieux-Boucau", url:"https://ecoledesurf.com/ecoles/surf-vieux-boucau/"}, stay:{name:"Atlantic Surf Lodge", url:"https://atlantic-surflodge.com/fr/bienvenue-chez-atlantic-surf-lodge/", distance:"~5 min à pied du spot"}, transport:"Gare TGV de Dax à ~30 min ; aéroport de Biarritz à ~50 min ; bus RDTL l'été.", tip:"Le plan d'eau du lac est parfait pour finir la journée en famille après le surf.",
+      en:{level:"All levels", season:"Sept–May", conditions:"NW swell, lake current has an effect", access:"Town-centre parking", ambiance:"Lively seaside resort", around:"Shops, restaurants, Port d'Albret nearby", desc:"Lively central beach, lake current nearby.", transport:"Dax TGV station ~30 min; Biarritz airport ~50 min; RDTL bus in summer.", tip:"The lake's flat water is perfect for a family wind-down after surfing."}},
+    {name:"Port d'Albret / Soustons", commune:"Soustons, Landes", lat:43.7695, lng:-1.4010, sports:["wind","wingfoil","kite"], level:"Débutant à intermédiaire", season:"Mai–Sept", conditions:"Plan d'eau plat, vent thermique NW l'été", access:"Base nautique, parking sur place", ambiance:"Familial, orienté glisse plate", around:"Location matériel, écoles de wind/kite", desc:"Lagune d'eau douce, vent thermique fiable l'été.", score:7.6, school:{name:"Pôle Nautique de Soustons Plage (wingfoil, voile)", url:"https://pole-nautique-soustons-plage.com/fr/ecole-de-voile/"}, stay:{name:"Hébergements — Landes Atlantique Sud Tourisme", url:"https://www.landesatlantiquesud.com/", distance:"Variable selon l'hébergement choisi"}, transport:"Gare TGV de Dax à ~30 min ; aéroport de Biarritz à ~45 min ; bus RDTL l'été.", tip:"Le vent thermique se lève en général en début d'après-midi l'été.",
+      en:{level:"Beginner to intermediate", season:"May–Sept", conditions:"Flat water, NW thermal wind in summer", access:"Watersports base, on-site parking", ambiance:"Family-friendly, flat-water focused", around:"Gear rental, wind/kite schools", desc:"Freshwater lagoon, reliable thermal wind in summer.", transport:"Dax TGV station ~30 min; Biarritz airport ~45 min; RDTL bus in summer.", tip:"The thermal wind usually kicks in early afternoon in summer."}},
+    {name:"Seignosse — Les Bourdaines", commune:"Seignosse, Landes", lat:43.7189, lng:-1.4278, sports:["surf"], level:"Intermédiaire", season:"Sept–Mai", conditions:"Houle NW creuse, pic exigeant", access:"Parking + sentier dunes, 5 min", ambiance:"Local, assez chargé aux bonnes conditions", around:"Peu de commerces sur site, Seignosse-bourg proche", desc:"Beach-break creux entre les dunes, peu de fenêtres d'accès.", score:8.0, school:{name:"École Aloha", url:"https://www.aloha-ecoledesurf.com/"}, stay:{name:"Natural Surf Lodge (surf camp)", url:"https://www.naturalsurfschool.com/surf-hebergement/", distance:"~10-15 min en voiture"}, transport:"Gare de Dax ou Bayonne à ~25 min ; aéroport de Biarritz à ~30 min ; Vélodyssée sur place.", tip:"Vérifier la marée avant de partir : le spot ne marche que sur certaines fenêtres.",
+      en:{level:"Intermediate", season:"Sept–May", conditions:"Hollow NW swell, demanding peak", access:"Parking + 5 min dune path", ambiance:"Local crowd, can get busy in good conditions", around:"Few shops on-site, Seignosse village nearby", desc:"Hollow beach-break between the dunes, works only on certain tide windows.", transport:"Dax or Bayonne train station ~25 min; Biarritz airport ~30 min; Vélodyssée bike path on-site.", tip:"Check the tide before heading out — this spot only works in certain windows."}},
+    {name:"Seignosse — Le Penon", commune:"Seignosse, Landes", lat:43.7047, lng:-1.4263, sports:["surf"], level:"Tous niveaux", season:"Sept–Mai", conditions:"Houle NW/W, plusieurs pics", access:"Parking direct, plage surveillée", ambiance:"Central, bien équipé", around:"Écoles de surf, restaurants, location matériel", desc:"Spot central de Seignosse, très bien équipé.", score:7.9, school:{name:"École L'Agréou", url:"https://www.lagreou-surf-seignosse.com/"}, stay:{name:"Natural Surf Lodge (surf camp)", url:"https://www.naturalsurfschool.com/surf-hebergement/", distance:"~10-15 min en voiture"}, transport:"Gare de Dax ou Bayonne à ~25 min ; aéroport de Biarritz à ~30 min ; Vélodyssée sur place.", tip:"Spot polyvalent, bon plan B si les Bourdaines sont trop chargées.",
+      en:{level:"All levels", season:"Sept–May", conditions:"NW/W swell, several peaks", access:"Direct parking, lifeguarded beach", ambiance:"Central, well-equipped", around:"Surf schools, restaurants, gear rental", desc:"Seignosse's central spot, very well equipped.", transport:"Dax or Bayonne train station ~25 min; Biarritz airport ~30 min; Vélodyssée bike path on-site.", tip:"Versatile spot, a good backup if Les Bourdaines is too crowded."}},
+    {name:"Hossegor — La Gravière", commune:"Hossegor, Landes", lat:43.6647, lng:-1.4406, sports:["surf"], level:"Confirmé / Expert", season:"Août–Nov", conditions:"Houle NW puissante, reef de sable creux", access:"Parking + accès direct plage", ambiance:"Compétitive, spot mondialement suivi", around:"Shapers, surf shops, restaurants haut de gamme", desc:"Vague de reef mondialement connue, très puissante.", score:9.1, school:{name:"Darrigood Surf School (ESCF Hossegor)", url:"https://ecoledesurf.com/ecoles/surf-hossegor/"}, stay:{name:"Hôtel Les Fougères", url:"https://ecoledesurf.com/ecoles/surf-hossegor/hebergement/", distance:"~10 min à pied du spot"}, transport:"Gare de Bayonne à ~25 min ; aéroport de Biarritz à ~25 min ; Vélodyssée sur place.", tip:"Éviter juillet-août pour la Gravière : viser septembre pour moins de monde.",
+      en:{level:"Advanced / Expert", season:"Aug–Nov", conditions:"Powerful NW swell, hollow sand-bottom wave", access:"Parking + direct beach access", ambiance:"Competitive, world-renowned spot", around:"Shapers, surf shops, upscale restaurants", desc:"World-famous, very powerful sand-bottom wave.", transport:"Bayonne train station ~25 min; Biarritz airport ~25 min; Vélodyssée bike path on-site.", tip:"Avoid July-August at La Gravière — aim for September for smaller crowds."}},
+    {name:"Hossegor — La Nord", commune:"Hossegor, Landes", lat:43.6715, lng:-1.4419, sports:["surf"], level:"Intermédiaire à confirmé", season:"Sept–Mai", conditions:"Houle NW, pics plus accessibles", access:"Parking centre-ville, 5 min à pied", ambiance:"Animée, bon compromis niveau", around:"Commerces, écoles de surf, bars", desc:"Alternative à la Gravière, pics plus abordables.", score:8.2, school:{name:"Watermansport Surfschool", url:"https://watermansport-surfschool.com/"}, stay:{name:"Hôtel Les Fougères", url:"https://ecoledesurf.com/ecoles/surf-hossegor/hebergement/", distance:"~5 min à pied du spot"}, transport:"Gare de Bayonne à ~25 min ; aéroport de Biarritz à ~25 min ; Vélodyssée sur place.", tip:"Alternative moins courue quand la Gravière est pleine.",
+      en:{level:"Intermediate to advanced", season:"Sept–May", conditions:"NW swell, more manageable peaks", access:"Town-centre parking, 5 min walk", ambiance:"Lively, good level trade-off", around:"Shops, surf schools, bars", desc:"Alternative to La Gravière, more approachable peaks.", transport:"Bayonne train station ~25 min; Biarritz airport ~25 min; Vélodyssée bike path on-site.", tip:"A quieter alternative when La Gravière is packed."}},
+    {name:"Capbreton", commune:"Capbreton, Landes", lat:43.6437, lng:-1.4460, sports:["surf"], level:"Tous niveaux", season:"Sept–Mai", conditions:"Houle NW, influence du gouf marin", access:"Parking port + plage centrale", ambiance:"Village animé, port de pêche", around:"Restaurants, écoles de surf, port", desc:"Proche du gouf de Capbreton, ambiance village animée.", score:7.7, school:{name:"Water Addict Surf Academy (WASA)", url:"https://www.water-addict.com/"}, stay:{name:"Locations WASA", url:"https://www.water-addict.com/", distance:"À quelques minutes à pied du spot"}, transport:"Gare de Bayonne à ~20 min ; aéroport de Biarritz à ~25 min ; Vélodyssée sur place.", tip:"Le port est sympa pour un déjeuner après la session.",
+      en:{level:"All levels", season:"Sept–May", conditions:"NW swell, influenced by the Capbreton canyon", access:"Harbour + central beach parking", ambiance:"Lively village, fishing harbour", around:"Restaurants, surf schools, harbour", desc:"Close to the Capbreton canyon, lively village atmosphere.", transport:"Bayonne train station ~20 min; Biarritz airport ~25 min; Vélodyssée bike path on-site.", tip:"The harbour is a nice spot for lunch after your session."}},
+    {name:"Labenne-Océan", commune:"Labenne, Landes", lat:43.6020, lng:-1.4680, sports:["surf"], level:"Tous niveaux", season:"Sept–Mai", conditions:"Houle NW/W, plage longue et régulière", access:"Parking direct, peu fréquenté", ambiance:"Tranquille, nature", around:"Camping naturiste voisin, peu de commerces", desc:"Longue plage sauvage, spot plus tranquille.", score:6.9, school:{name:"Tiki Surf School", url:"https://www.tikisurfschool.com/"}, stay:{name:"Camping La Mer (Labenne-Océan)", url:"https://www.tikisurfschool.com/", distance:"Accès direct à la plage"}, transport:"Gare de Bayonne à ~20 min ; aéroport de Biarritz à ~25 min ; Vélodyssée sur place.", tip:"Spot tranquille, parfait pour souffler après les plages plus animées d'Hossegor.",
+      en:{level:"All levels", season:"Sept–May", conditions:"NW/W swell, long and regular beach", access:"Direct parking, low crowds", ambiance:"Quiet, natural setting", around:"Naturist campsite nearby, few shops", desc:"Long wild beach, a quieter spot.", transport:"Bayonne train station ~20 min; Biarritz airport ~25 min; Vélodyssée bike path on-site.", tip:"A quiet spot, perfect for unwinding after the busier Hossegor beaches."}},
+    {name:"Ondres-Plage", commune:"Ondres, Landes", lat:43.5758, lng:-1.4670, sports:["surf","wind"], level:"Tous niveaux", season:"Sept–Mai", conditions:"Houle NW, vent souvent présent", access:"Parking front de mer", ambiance:"Familial, calme", around:"Restaurants de plage, écoles de surf", desc:"Plage familiale entre Landes et Pays Basque.", score:7.0, school:{name:"École du Surf Français Go and Surf", url:"https://www.goandsurf.com/"}, stay:{name:"Camping Espace Blue Océan", url:"https://landes-tourisme.info/ecole,de,surf,messanges,580,87,ab.html", distance:"~10 min en voiture"}, transport:"Gare de Bayonne à ~15 min ; aéroport de Biarritz à ~20 min ; bus Chronoplus.", tip:"Bon compromis entre Landes et Pays Basque, moins couru que ses voisins.",
+      en:{level:"All levels", season:"Sept–May", conditions:"NW swell, wind often present", access:"Seafront parking", ambiance:"Family-friendly, quiet", around:"Beach restaurants, surf schools", desc:"Family beach between the Landes and the Basque Country.", transport:"Bayonne train station ~15 min; Biarritz airport ~20 min; Chronoplus bus.", tip:"A good middle ground between the Landes and Basque Country, quieter than its neighbours."}},
+    {name:"Tarnos — Le Métro", commune:"Tarnos, Landes", lat:43.5490, lng:-1.4750, sports:["surf"], level:"Intermédiaire", season:"Sept–Mai", conditions:"Houle NW, embouchure de l'Adour proche", access:"Parking + sentier littoral", ambiance:"Local, peu touristique", around:"Peu de services, proche zone portuaire", desc:"Beach-break au nord de l'Adour, moins fréquenté.", score:7.1, school:{name:"École Surfescapade", url:"https://www.surf-escapade.com/"}, stay:{name:"Village Vacances La Forêt des Landes", url:"https://www.surf-escapade.com/index.php/surf-camp", distance:"~10-15 min en voiture"}, transport:"Gare de Bayonne à ~15 min ; aéroport de Biarritz à ~15 min ; bus Chronoplus.", tip:"Peu de services sur place : prévoir son pique-nique.",
+      en:{level:"Intermediate", season:"Sept–May", conditions:"NW swell, close to the Adour river mouth", access:"Parking + coastal path", ambiance:"Local, not touristy", around:"Few services, near the harbour area", desc:"Beach-break north of the Adour, less crowded.", transport:"Bayonne train station ~15 min; Biarritz airport ~15 min; Chronoplus bus.", tip:"Few services on-site — bring your own picnic."}},
+    {name:"Anglet — Chambre d'Amour", commune:"Anglet, Pyrénées-Atlantiques", lat:43.4960, lng:-1.5279, sports:["surf"], level:"Tous niveaux", season:"Toute l'année", conditions:"Houle NW/W, plusieurs pics urbains", access:"Parking + accès immédiat, transports en commun", ambiance:"Urbain, très fréquenté", around:"Commerces, écoles de surf, vie nocturne proche", desc:"Spot urbain emblématique, très facile d'accès.", score:7.5, school:{name:"John & Tim Surf School", url:"https://ecolesurf.com/ecole-de-surf-a-la-chambre-damour-anglet/"}, stay:{name:"Belambra Club Anglet", url:"https://ecoledesurf.com/ecoles/surf-anglet/hebergement/", distance:"~5-10 min à pied du spot"}, transport:"Aéroport de Biarritz à ~10 min ; gare de Biarritz-La Négresse à ~15 min ; bus Chronoplus, arrêt à proximité.", tip:"Se garer tôt l'été, le parking sature vite en journée.",
+      en:{level:"All levels", season:"Year-round", conditions:"NW/W swell, several urban peaks", access:"Parking + immediate access, public transport", ambiance:"Urban, very busy", around:"Shops, surf schools, nightlife nearby", desc:"Iconic urban spot, very easy to access.", transport:"Biarritz airport ~10 min; Biarritz-La Négresse train station ~15 min; Chronoplus bus stop nearby.", tip:"Park early in summer — the car park fills up fast during the day."}},
+    {name:"Anglet — Sables d'Or", commune:"Anglet, Pyrénées-Atlantiques", lat:43.5015, lng:-1.5265, sports:["surf"], level:"Débutant à intermédiaire", season:"Toute l'année", conditions:"Houle W, plage surveillée", access:"Parking + bus urbain", ambiance:"Familial, très encadré", around:"Nombreuses écoles de surf, snacks de plage", desc:"Zone surveillée, nombreuses écoles de surf.", score:7.3, school:{name:"École Rainbow", url:"https://www.ecoledesurf-rainbow.com/"}, stay:{name:"Belambra Club Anglet", url:"https://ecoledesurf.com/ecoles/surf-anglet/hebergement/", distance:"~10 min à pied du spot"}, transport:"Aéroport de Biarritz à ~10 min ; gare de Biarritz-La Négresse à ~15 min ; bus Chronoplus.", tip:"Plage animée et bien encadrée, idéale pour un premier cours.",
+      en:{level:"Beginner to intermediate", season:"Year-round", conditions:"W swell, lifeguarded beach", access:"Parking + city bus", ambiance:"Family-friendly, well supervised", around:"Many surf schools, beach snack bars", desc:"Lifeguarded area, many surf schools.", transport:"Biarritz airport ~10 min; Biarritz-La Négresse train station ~15 min; Chronoplus bus.", tip:"Lively, well-supervised beach — great for a first lesson."}},
+    {name:"Biarritz — Côte des Basques", commune:"Biarritz, Pyrénées-Atlantiques", lat:43.4805, lng:-1.5620, sports:["surf"], level:"Tous niveaux", season:"Toute l'année", conditions:"Houle W, vagues longues au coucher du soleil", access:"Escaliers depuis la ville, pas de parking direct", ambiance:"Mythique, très fréquenté", around:"Restaurants, écoles de surf historiques", desc:"Spot historique du surf en France, coucher de soleil.", score:8.3, school:{name:"École Jo Moraiz (depuis 1966)", url:"https://www.jomoraiz.com/"}, stay:{name:"Hébergements Jo Moraiz", url:"https://www.jomoraiz.com/", distance:"Variable, en centre-ville de Biarritz"}, transport:"Aéroport de Biarritz à ~5 min ; gare de Biarritz-La Négresse à ~10 min ; bus Chronoplus, pas de parking direct sur le spot.", tip:"Viser le coucher de soleil pour la session la plus mémorable.",
+      en:{level:"All levels", season:"Year-round", conditions:"W swell, long waves at sunset", access:"Stairs from town, no direct parking", ambiance:"Iconic, very busy", around:"Restaurants, historic surf schools", desc:"France's historic surf spot, sunset sessions.", transport:"Biarritz airport ~5 min; Biarritz-La Négresse train station ~10 min; Chronoplus bus, no direct parking at the spot.", tip:"Aim for sunset for the most memorable session."}},
+    {name:"Biarritz — Grande Plage", commune:"Biarritz, Pyrénées-Atlantiques", lat:43.4838, lng:-1.5578, sports:["surf"], level:"Débutant", season:"Toute l'année", conditions:"Houle faible à modérée, protégée", access:"Centre-ville, accès immédiat", ambiance:"Touristique, chic", around:"Hôtels, restaurants, casino, commerces", desc:"Vagues douces en centre-ville, idéal pour débuter.", score:7.2, school:{name:"ESF Biarritz Pays Basque", url:"https://www.ecole-du-surf-francais-biarritz.fr/"}, stay:{name:"Biarritz Surf Lodge", url:"https://www.surftraining.com/en/", distance:"À quelques minutes à pied du spot"}, transport:"Aéroport de Biarritz à ~5 min ; gare de Biarritz-La Négresse à ~10 min ; en plein centre-ville.", tip:"Spot très encadré, parfait pour une première approche du surf en ville.",
+      en:{level:"Beginner", season:"Year-round", conditions:"Small to moderate, sheltered swell", access:"Town centre, immediate access", ambiance:"Touristy, upscale", around:"Hotels, restaurants, casino, shops", desc:"Gentle waves right in town, ideal for beginners.", transport:"Biarritz airport ~5 min; Biarritz-La Négresse train station ~10 min; right in the town centre.", tip:"Well-supervised spot, perfect first taste of surfing in town."}},
+    {name:"Bidart — Parlementia", commune:"Bidart, Pyrénées-Atlantiques", lat:43.4405, lng:-1.5820, sports:["surf"], level:"Confirmé / Expert", season:"Oct–Mars", conditions:"Houle NW puissante, reef exposé", access:"Sentier côtier depuis le parking", ambiance:"Exigeant, spot de gros surf", around:"Peu de services directs, Bidart-bourg proche", desc:"Reef exigeant, grosses houles hivernales.", score:8.4, school:{name:"École de surf Bidart-Guéthary-Parlementia", url:"https://www.ecole-de-surf-guethary-bidart.com/"}, stay:{name:"Camping Erreka / Berrua (4★)", url:"https://www.lecoledelaglisse.com/ecole-de-la-glisse-ecole-de-surf-bidart-biarritz-paysbasque-guethary-surf-school", distance:"~5-10 min en voiture"}, transport:"Aéroport de Biarritz à ~15 min ; gare de Biarritz-La Négresse à ~15 min ; peu de bus, voiture conseillée.", tip:"Réservé aux surfeurs expérimentés par grosse houle : bien évaluer son niveau avant d'y aller.",
+      en:{level:"Advanced / Expert", season:"Oct–March", conditions:"Powerful NW swell, exposed reef", access:"Coastal path from the car park", ambiance:"Demanding, big-wave spot", around:"Few direct services, Bidart village nearby", desc:"Demanding reef break, big winter swells.", transport:"Biarritz airport ~15 min; Biarritz-La Négresse train station ~15 min; few buses, a car is recommended.", tip:"For experienced surfers only on big swells — assess your level honestly before paddling out."}},
+    {name:"Guéthary — Avalanche", commune:"Guéthary, Pyrénées-Atlantiques", lat:43.4280, lng:-1.5980, sports:["surf"], level:"Expert", season:"Oct–Mars", conditions:"Houle NW très grosse, reef profond", access:"Vue depuis le port, mise à l'eau technique", ambiance:"Spot mythique, très surveillé par les locaux", around:"Port pittoresque, restaurants basques", desc:"Spot de gros surf réputé, pour riders expérimentés.", score:8.6, school:{name:"École de surf Bidart-Guéthary-Parlementia", url:"https://www.ecole-de-surf-guethary-bidart.com/"}, stay:{name:"Le Surf Camp — villa à Guéthary", url:"https://www.lecoledelaglisse.com/le-surf-camp-cote-basque-vacances-bidart-biarritz-surfcamp", distance:"À quelques minutes à pied du port"}, transport:"Aéroport de Biarritz à ~15 min ; gare de Biarritz-La Négresse à ~15 min ; petit village, se garer tôt.", tip:"Spot de spécialistes : observer depuis le port avant de se mettre à l'eau si on découvre le spot.",
+      en:{level:"Expert", season:"Oct–March", conditions:"Very big NW swell, deep reef", access:"View from the harbour, technical entry", ambiance:"Legendary spot, closely watched by locals", transport:"Biarritz airport ~15 min; Biarritz-La Négresse train station ~15 min; small village, park early.", tip:"Locals-heavy spot: watch from the harbour before paddling out if you're new here.", around:"Picturesque harbour, Basque restaurants", desc:"Renowned big-wave spot, for experienced riders."}},
+    {name:"Saint-Jean-de-Luz — Lafitenia", commune:"Saint-Jean-de-Luz, Pyrénées-Atlantiques", lat:43.4160, lng:-1.6080, sports:["surf"], level:"Intermédiaire", season:"Sept–Mai", conditions:"Houle NW, reef régulier et propre", access:"Parking + sentier côtier, 5 min", ambiance:"Local, respecté des surfeurs", around:"Peu de commerces sur site, ville à 10 min", desc:"Vague de reef réputée pour sa régularité.", score:8.0, school:{name:"Lafitenia Surfcamp (location, accès direct au spot)", url:"http://www.mango-surf.com/annuaire/lafitenia-surfcamp--278.html"}, stay:{name:"Hôtel Lafitenia Resort", url:"https://www.lafiteniaresort.com/places/le-surf-a-saint-jean-de-luz/", distance:"Sur place, accès direct au spot"}, transport:"Gare de Saint-Jean-de-Luz-Ciboure à ~10 min ; aéroport de Biarritz à ~20 min ; réseau Txik Txak.", tip:"Spot très fréquenté aux beaux jours : privilégier les sessions tôt le matin.",
+      en:{level:"Intermediate", season:"Sept–May", conditions:"NW swell, clean and consistent reef", access:"Parking + 5 min coastal path", ambiance:"Local crowd, respected by surfers", around:"Few shops on-site, town 10 min away", desc:"Reef wave renowned for its consistency.", transport:"Saint-Jean-de-Luz-Ciboure train station ~10 min; Biarritz airport ~20 min; Txik Txak bus network.", tip:"Gets busy on good days — early morning sessions are best."}},
+    {name:"Hendaye Plage", commune:"Hendaye, Pyrénées-Atlantiques", lat:43.3600, lng:-1.7780, sports:["surf","wind","wingfoil"], level:"Débutant", season:"Toute l'année", conditions:"Baie protégée, houle et vent atténués", access:"Parking front de mer, plage surveillée", ambiance:"Familial, transfrontalier (Espagne face)", around:"Écoles de surf/wing, restaurants, casino", desc:"Baie protégée face à l'Espagne, spot très abordable.", score:7.4, school:{name:"École du Surf Français Hendaia", url:"https://www.ecoledesurf-hendaye.com/"}, stay:{name:"Centre de séjour Bella Vista", url:"https://www.ecoledesurf-hendaye.com/surf-camp-groupes-famille-cote-basque.html", distance:"~10 min à pied de la plage"}, transport:"Gare d'Hendaye (TGV + trains espagnols) à ~10 min ; aéroport de Biarritz à ~25 min ; réseau Txik Txak.", tip:"Idéal pour débuter toute l'année grâce à sa baie protégée.",
+      en:{level:"Beginner", season:"Year-round", conditions:"Sheltered bay, reduced swell and wind", access:"Seafront parking, lifeguarded beach", ambiance:"Family-friendly, cross-border (facing Spain)", around:"Surf/wing schools, restaurants, casino", desc:"Sheltered bay facing Spain, a very approachable spot.", transport:"Hendaye station (TGV + Spanish trains) ~10 min; Biarritz airport ~25 min; Txik Txak bus network.", tip:"Great for learning year-round thanks to its sheltered bay."}}
+  ];
+
+  const map = L.map('map', { scrollWheelZoom:false }).setView([43.75, -1.55], 9);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    maxZoom: 18
+  }).addTo(map);
+
+  function primaryColor(sports){
+    return SPORT_COLORS[sports[0]] || "#E3572A";
+  }
+
+  // ── Supabase : colle tes identifiants ici après avoir créé ton projet (voir README) ──
+  const SUPABASE_URL = "https://csjubabgwoizxgtxmcmf.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_n8WlcxBGSzvrlb90HL2SMQ_sys2ZHGS";
+  const supabaseClient = (window.supabase && SUPABASE_URL.startsWith("http"))
+    ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : null;
+  if (!supabaseClient) {
+    console.warn("WildSpots : Supabase non configuré — avis et validations restent en mémoire locale (non partagés). Voir README.md.");
+  }
+
+  // Avis + validations : mis en cache ici après chargement depuis Supabase (ou en mémoire locale si non configuré)
+  const communityComments = {};
+  const validationCounts = {};
+  const validatedByUser = new Set(); // anti double-clic pour cette session, pas un vrai compte utilisateur
+  let currentOpenIdx = null;
+
+  function escapeHTML(str){
+    const div = document.createElement('div');
+    div.innerText = str;
+    return div.innerHTML;
+  }
+
+  async function loadCommunityData(){
+    if (!supabaseClient) return;
+    const { data: comments, error: cErr } = await supabaseClient
+      .from('comments').select('*').order('created_at', { ascending:true });
+    if (cErr) { console.warn("Supabase (comments) :", cErr.message); }
+    (comments || []).forEach(c => {
+      if (!communityComments[c.spot_index]) communityComments[c.spot_index] = [];
+      communityComments[c.spot_index].push({
+        author: c.author || "Anonyme",
+        text: c.comment,
+        date: new Date(c.created_at).toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' })
+      });
+    });
+
+    const { data: validations, error: vErr } = await supabaseClient
+      .from('validations').select('spot_index, section_key, is_ambassador');
+    if (vErr) { console.warn("Supabase (validations) :", vErr.message); }
+    (validations || []).forEach(v => {
+      const k = `${v.spot_index}:${v.section_key}`;
+      if (v.is_ambassador) {
+        ambassadorCounts[k] = (ambassadorCounts[k] || 0) + 1;
+      } else {
+        validationCounts[k] = (validationCounts[k] || 0) + 1;
+      }
+    });
+
+    // Si un panneau est déjà ouvert (chargement Supabase plus lent que le clic), on le rafraîchit
+    if (currentOpenIdx !== null) openSpot(currentOpenIdx);
+  }
+
+  function renderComments(idx){
+    const list = communityComments[idx] || [];
+    if (list.length === 0) {
+      return `<p class="no-comments">${t('noComments')}</p>`;
+    }
+    return `<div class="comment-list">${list.map(c => `
+      <div class="comment-item">
+        <div class="comment-head"><b>${escapeHTML(c.author)}</b><span class="comment-date">${c.date}</span></div>
+        <p>${escapeHTML(c.text)}</p>
+      </div>
+    `).join('')}</div>`;
+  }
+
+  const KIND_LABELS = {
+    fr: { camping:"Camping", hotel:"Hôtel", village:"Village vacances", lodge:"Surf camp / lodge", resort:"Résidence / resort", tourisme:"Sélection office de tourisme", ecoleSurf:"École de surf", ecoleGlisse:"École de glisse", local:"Établissement local" },
+    en: { camping:"Campsite", hotel:"Hotel", village:"Holiday resort", lodge:"Surf camp / lodge", resort:"Residence / resort", tourisme:"Tourist office pick", ecoleSurf:"Surf school", ecoleGlisse:"Watersports school", local:"Local establishment" }
+  };
+  const PRICE_MAP = {
+    fr: { camping:"€ · dès ~20 €/nuit", hotel:"€€–€€€ · variable selon saison", village:"€€ · formule séjour", lodge:"€€ · pension + cours souvent inclus", resort:"€€€ · haut de gamme", tourisme:"Variable selon établissement", ecoleSurf:"€€ · ~35–45 €/cours", ecoleGlisse:"€€ · ~40–60 €/session", local:"Variable" },
+    en: { camping:"€ · from ~€20/night", hotel:"€€–€€€ · varies by season", village:"€€ · package stay", lodge:"€€ · board + lessons often included", resort:"€€€ · upscale", tourisme:"Varies by establishment", ecoleSurf:"€€ · ~€35–45/lesson", ecoleGlisse:"€€ · ~€40–60/session", local:"Varies" }
+  };
+
+  function inferKind(name){
+    const n = name.toLowerCase();
+    let key = "local";
+    if (n.includes("camping")) key = "camping";
+    else if (n.includes("hôtel") || n.includes("hotel")) key = "hotel";
+    else if (n.includes("village vacances") || n.includes("centre de séjour") || n.includes("club")) key = "village";
+    else if (n.includes("lodge") || n.includes("surf camp") || n.includes("surfcamp")) key = "lodge";
+    else if (n.includes("résidence") || n.includes("resort")) key = "resort";
+    else if (n.includes("office de tourisme") || n.includes("tourisme")) key = "tourisme";
+    else if (n.includes("école") || n.includes("ecole") || n.includes("surf school") || n.includes("academy") || n.includes("surfschool")) key = "ecoleSurf";
+    else if (n.includes("pôle nautique") || n.includes("foil")) key = "ecoleGlisse";
+    return key;
+  }
+
+  function inferPrice(kindKey){
+    return PRICE_MAP[lang][kindKey] || PRICE_MAP[lang].local;
+  }
+
+  // Code partagé uniquement avec les ambassadeurs WildSpots — à changer une fois le programme lancé (voir README)
+  const AMBASSADOR_CODE = "WILDSPOTS-AMBASSADEUR";
+  const ambassadorCounts = {}; // "idx:key" -> nb de validations ambassadeur
+
+  // Niveau 1 = IA (défaut) · Niveau 2 = validé communauté (dès 1 validation) · Niveau 3 = validé ambassadeur WildSpots
+  function statusBadge(idx, key){
+    const k = `${idx}:${key}`;
+    const ambCount = ambassadorCounts[k] || 0;
+    const commCount = validationCounts[k] || 0;
+    if (ambCount > 0) {
+      return `<span class="badge badge-ambassadeur">${t('badgeAmbassadeur')}</span>`;
+    }
+    if (commCount > 0) {
+      return `<span class="badge badge-communaute">${t('badgeCommunaute', commCount)}</span>`;
+    }
+    return `<span class="badge badge-ia">${t('badgeIA')}</span>`;
+  }
+
+  function sectionControls(idx, key){
+    const k = `${idx}:${key}`;
+    const already = validatedByUser.has(k);
+    const alreadyAmb = validatedByUser.has(`${k}:amb`);
+    return `
+      <div class="section-controls">
+        <button type="button" id="valid-btn-${idx}-${key}" class="validate-btn${already ? ' validated' : ''}" onclick="validateSection(${idx},'${key}',false)" ${already ? 'disabled' : ''}>
+          ${already ? t('btnConfirmed', validationCounts[k] || 0) : t('btnConfirm', validationCounts[k] || 0)}
+        </button>
+        <span class="ambassador-toggle" id="amb-toggle-${idx}-${key}" onclick="toggleAmbassadorForm(${idx},'${key}')" ${alreadyAmb ? 'style="display:none"' : ''}>${t('ambassadorToggle')}</span>
+        <span id="amb-form-${idx}-${key}"></span>
+      </div>`;
+  }
+
+  window.toggleAmbassadorForm = function(idx, key){
+    const el = document.getElementById(`amb-form-${idx}-${key}`);
+    if (el.innerHTML) { el.innerHTML = ""; return; }
+    el.innerHTML = `
+      <div class="ambassador-form">
+        <input type="password" id="amb-code-${idx}-${key}" placeholder="${t('ambassadorPlaceholder')}">
+        <button type="button" onclick="validateSection(${idx},'${key}',true)">${t('ambassadorConfirm')}</button>
+      </div>`;
+  };
+
+  window.validateSection = async function(idx, key, isAmbassador){
+    const k = `${idx}:${key}`;
+    if (isAmbassador) {
+      const codeEl = document.getElementById(`amb-code-${idx}-${key}`);
+      const code = codeEl ? codeEl.value.trim() : "";
+      if (code !== AMBASSADOR_CODE) {
+        if (codeEl) { codeEl.style.borderColor = "var(--coral)"; codeEl.placeholder = t('ambassadorWrong'); }
+        return;
+      }
+      if (validatedByUser.has(`${k}:amb`)) return;
+      validatedByUser.add(`${k}:amb`);
+      ambassadorCounts[k] = (ambassadorCounts[k] || 0) + 1;
+    } else {
+      if (validatedByUser.has(k)) return;
+      validatedByUser.add(k);
+      validationCounts[k] = (validationCounts[k] || 0) + 1;
+    }
+
+    // On ré-affiche le badge de statut + les contrôles de la section concernée
+    const label = document.getElementById(`status-${idx}-${key}`);
+    if (label) label.innerHTML = statusBadge(idx, key);
+    const controls = document.getElementById(`controls-${idx}-${key}`);
+    if (controls) controls.outerHTML = `<div id="controls-${idx}-${key}">${sectionControls(idx, key)}</div>`;
+
+    if (supabaseClient) {
+      const { error } = await supabaseClient.from('validations').insert({
+        spot_index: idx, spot_name: spots[idx].name, section_key: key, is_ambassador: !!isAmbassador
+      });
+      if (error) console.warn("Supabase (validate) :", error.message);
+    }
+  };
+
+  const BUDGET_MAP = {
+    fr: {
+      Camping: { min: "20 €", moyen: "35 €" },
+      "Hôtel": { min: "70 €", moyen: "110 €" },
+      "Village vacances": { min: "50 €", moyen: "75 €" },
+      "Surf camp / lodge": { min: "55 €", moyen: "85 €" },
+      "Résidence / resort": { min: "100 €", moyen: "160 €" },
+      "Sélection office de tourisme": { min: "Variable", moyen: "Variable" },
+      "École de surf": { min: "35 €", moyen: "45 €" },
+      "École de glisse": { min: "40 €", moyen: "60 €" },
+      "Établissement local": { min: "Variable", moyen: "Variable" }
+    },
+    en: {
+      Camping: { min: "€20", moyen: "€35" },
+      "Hôtel": { min: "€70", moyen: "€110" },
+      "Village vacances": { min: "€50", moyen: "€75" },
+      "Surf camp / lodge": { min: "€55", moyen: "€85" },
+      "Résidence / resort": { min: "€100", moyen: "€160" },
+      "Sélection office de tourisme": { min: "Varies", moyen: "Varies" },
+      "École de surf": { min: "€35", moyen: "€45" },
+      "École de glisse": { min: "€40", moyen: "€60" },
+      "Établissement local": { min: "Varies", moyen: "Varies" }
+    }
+  };
+  function budgetEstimate(kindKey){
+    const table = BUDGET_MAP[lang] || BUDGET_MAP.fr;
+    return table[kindKey] || table["Établissement local"];
+  }
+
+  // ── Budget détaillé estimé à partir des réponses du quiz (hébergement + cours + location + courses) ──
+  const NIGHT_RATE = { "Camping":45, "Hôtel":120, "Village vacances":90, "Surf camp / lodge":95, "Résidence / resort":170, "Sélection office de tourisme":90, "École de surf":90, "École de glisse":90, "Établissement local":90 };
+  const NIGHTS_BY_DURATION = { weekend:2, semaine:7, deux_semaines:14 };
+  const GROUP_SIZE = { seul:1, couple:2, famille:4, amis:4 };
+  const LESSONS_BY_DURATION = { weekend:2, semaine:5, deux_semaines:9 };
+
+  function computeFullBudget(spot){
+    if (!wizardAnswers.duration || !spot.stay) return null;
+    const nights = NIGHTS_BY_DURATION[wizardAnswers.duration] || 7;
+    const group = GROUP_SIZE[wizardAnswers.who] || 2;
+    const groupFactor = group <= 1 ? 0.6 : group === 2 ? 0.85 : group <= 4 ? 1.15 : 1.4;
+    const kind = inferKind(spot.stay.name);
+
+    const hebergement = Math.round((NIGHT_RATE[kind] || 90) * nights * groupFactor);
+
+    const wantsLessons = spot.school && (wizardAnswers.who === 'famille' || wizardAnswers.priorities.includes('progression'));
+    const lessonsCount = LESSONS_BY_DURATION[wizardAnswers.duration] || 5;
+    const cours = wantsLessons ? Math.round(lessonsCount * 48) : 0;
+
+    const location = spot.school ? Math.round(nights * 26 * (group <= 2 ? 0.6 : group <= 4 ? 1 : 1.3)) : 0;
+
+    const courses = Math.round(nights * 36 * (group <= 2 ? 0.5 : group <= 4 ? 1 : 1.4));
+
+    const total = hebergement + cours + location + courses;
+    return { hebergement, cours, location, courses, total, lessonsCount, wantsLessons };
+  }
+
+  function buildPanelHTML(spot, idx){
+    const d = lang === 'en' && spot.en ? spot.en : spot; // champs traduits si dispo
+    const tags = spot.sports.map(s =>
+      `<span class="popup-tag" style="background:${SPORT_COLORS[s]}">${SPORT_ICONS[s]}${SPORT_LABELS[s]}</span>`
+    ).join("");
+
+    function accordion(anchor, title, badgeHtml, bodyHtml){
+      return `
+        <div class="accordion-item">
+          <button type="button" class="accordion-header" id="${anchor}" onclick="toggleAccordion('${anchor}-body', this)">
+            <b>${title}</b>
+            <span class="accordion-header-right">${badgeHtml}<span class="accordion-chevron">▸</span></span>
+          </button>
+          <div class="accordion-body" id="${anchor}-body" style="display:none;">
+            ${bodyHtml}
+          </div>
+        </div>`;
+    }
+
+    const budget = spot.stay ? budgetEstimate(inferKind(spot.stay.name)) : null;
+    const fullBudget = computeFullBudget(spot);
+
+    const quickCards = [
+      { icon: "🎯", label: t('cardSpot'), anchor: `anchor-technique-${idx}` },
+      { icon: "🚗", label: t('cardTransport'), anchor: `anchor-transport-${idx}` },
+      spot.stay ? { icon: "🛏️", label: t('cardHebergement'), anchor: `anchor-hebergement-${idx}` } : null,
+      spot.school ? { icon: "🏄", label: t('cardEcole'), anchor: `anchor-ecole-${idx}` } : null
+    ].filter(Boolean);
+
+    const quickCardsHtml = `
+      <div class="quick-cards">
+        ${quickCards.map(c => `<button type="button" class="quick-card" onclick="openAndScroll('${c.anchor}')"><span>${c.icon}</span>${c.label}</button>`).join("")}
+      </div>`;
+
+    const technicheBody = `
+      <div class="panel-grid">
+        <div class="popup-row"><span>${t('rowNiveau')}</span><span>${d.level}</span></div>
+        <div class="popup-row"><span>${t('rowSaison')}</span><span>${d.season}</span></div>
+        <div class="popup-row"><span>${t('rowConditions')}</span><span>${d.conditions}</span></div>
+        <div class="popup-row"><span>${t('rowAmbiance')}</span><span>${d.ambiance}</span></div>
+        <div class="popup-row"><span>${t('rowAcces')}</span><span>${d.access}</span></div>
+      </div>
+      <div class="popup-around"><span>${t('rowAutour')}</span>${d.around}</div>
+      <div id="controls-${idx}-technique">${sectionControls(idx, "technique")}</div>`;
+
+    const transportBody = `<p class="popup-transport">${d.transport || "—"}</p><div id="controls-${idx}-transport">${sectionControls(idx, "transport")}</div>`;
+
+    const hebergementBody = spot.stay ? `
+      <div class="popup-links">
+        <a class="link-card link-card-primary" href="${spot.stay.url}" target="_blank" rel="noopener">
+          <span class="link-kind">${t('linkVerifie')}</span>
+          <span class="link-name">${spot.stay.name}</span>
+          <span class="link-type">${KIND_LABELS[lang][inferKind(spot.stay.name)]}</span>
+          ${spot.stay.distance ? `<span class="link-distance">📍 ${spot.stay.distance}</span>` : ""}
+          <span class="link-price">${inferPrice(inferKind(spot.stay.name))} <i>${t('estimationIA')}</i></span>
+          <span class="link-cta">${t('linkTarifs')}</span>
+        </a>
+      </div>
+      <div id="controls-${idx}-hebergement">${sectionControls(idx, "hebergement")}</div>` : "";
+
+    const ecoleBody = spot.school ? `
+      <div class="popup-links">
+        <a class="link-card" href="${spot.school.url}" target="_blank" rel="noopener">
+          <span class="link-kind">${t('linkVerifie')}</span>
+          <span class="link-name">${spot.school.name}</span>
+          <span class="link-type">${KIND_LABELS[lang][inferKind(spot.school.name)]}</span>
+          <span class="link-price">${inferPrice(inferKind(spot.school.name))} <i>${t('estimationIA')}</i></span>
+          <span class="link-cta">${t('linkSiteOfficiel')}</span>
+        </a>
+      </div>
+      <div id="controls-${idx}-ecole">${sectionControls(idx, "ecole")}</div>` : "";
+
+    const budgetBody = budget ? (fullBudget ? `
+      <div class="panel-grid">
+        <div class="popup-row"><span>${t('rowHebergement')}</span><span>${fullBudget.hebergement} €</span></div>
+        ${fullBudget.wantsLessons ? `<div class="popup-row"><span>${t('rowCours', fullBudget.lessonsCount)}</span><span>${fullBudget.cours} €</span></div>` : ""}
+        ${fullBudget.location > 0 ? `<div class="popup-row"><span>${t('rowLocation')}</span><span>${fullBudget.location} €</span></div>` : ""}
+        <div class="popup-row"><span>${t('rowCourses')}</span><span>${fullBudget.courses} €</span></div>
+      </div>
+      <p class="budget-total">${t('rowTotal')} : <b>${fullBudget.total} €</b></p>
+      <p class="budget-note">${t('budgetFullNote')}</p>` : `
+      <div class="panel-grid">
+        <div class="popup-row"><span>${t('rowBudgetMin')}</span><span>${budget.min}</span></div>
+        <div class="popup-row"><span>${t('rowBudgetMoyen')}</span><span>${budget.moyen}</span></div>
+      </div>
+      <p class="budget-note">${t('budgetNote')}</p>`) : "";
+
+    const avisBody = `
+      <div id="comments-list-${idx}">${renderComments(idx)}</div>
+      <div class="comment-form">
+        <input type="text" id="comment-author-${idx}" placeholder="${t('commentPlaceholderName')}" maxlength="40">
+        <textarea id="comment-text-${idx}" placeholder="${t('commentPlaceholderText')}" maxlength="240"></textarea>
+        <button type="button" onclick="addComment(${idx})">${t('commentPublish')}</button>
+      </div>`;
+
+    const suggestBody = `<div id="suggestion-zone-${idx}">${buildSuggestionForm(idx)}</div>`;
+
+    return `
+      <div class="panel-card">
+        <div class="panel-hero" style="background:${primaryColor(spot.sports)}"></div>
+        <h4>${spot.name}</h4>
+        <div class="popup-loc">📍 ${spot.commune}</div>
+        <div class="popup-tags">${tags}</div>
+        <p class="popup-desc">${d.desc}</p>
+
+        ${quickCardsHtml}
+
+        <div class="accordion">
+          ${accordion(`anchor-technique-${idx}`, t('secTechnique'), `<span id="status-${idx}-technique">${statusBadge(idx, "technique")}</span>`, technicheBody)}
+          ${accordion(`anchor-transport-${idx}`, t('secTransport'), `<span id="status-${idx}-transport">${statusBadge(idx, "transport")}</span>`, transportBody)}
+          ${spot.stay ? accordion(`anchor-hebergement-${idx}`, t('secHebergement'), `<span id="status-${idx}-hebergement">${statusBadge(idx, "hebergement")}</span>`, hebergementBody) : ""}
+          ${spot.school ? accordion(`anchor-ecole-${idx}`, t('secEcole'), `<span id="status-${idx}-ecole">${statusBadge(idx, "ecole")}</span>`, ecoleBody) : ""}
+          ${spot.tip ? accordion(`anchor-bonplan-${idx}`, t('secBonPlan'), `<span class="badge badge-ia">${t('badgeIA')}</span>`, `<p class="popup-tip">💡 ${d.tip}</p>`) : ""}
+          ${accordion(`anchor-avis-${idx}`, t('secAvis'), `<span class="badge badge-communaute">${lang === 'fr' ? 'Communauté' : 'Community'}</span>`, avisBody)}
+          ${accordion(`anchor-suggest-${idx}`, t('secSuggest'), `<span class="badge badge-communaute">${lang === 'fr' ? 'Communauté' : 'Community'}</span>`, suggestBody)}
+        </div>
+      </div>
+    `;
+  }
+
+  function buildSuggestionForm(idx){
+    return `
+      <div class="suggestion-form">
+        <select id="sugg-cat-${idx}">
+          <option value="hebergement">${t('suggCatHeb')}</option>
+          <option value="ecole">${t('suggCatEcole')}</option>
+          <option value="location">${t('suggCatLoc')}</option>
+        </select>
+        <input type="text" id="sugg-name-${idx}" placeholder="${t('suggName')}" maxlength="80">
+        <input type="text" id="sugg-url-${idx}" placeholder="${t('suggUrl')}" maxlength="200">
+        <textarea id="sugg-note-${idx}" placeholder="${t('suggNote')}" maxlength="200"></textarea>
+        <input type="text" id="sugg-author-${idx}" placeholder="${t('suggAuthor')}" maxlength="40">
+        <button type="button" onclick="addSuggestion(${idx})">${t('suggBtn')}</button>
+      </div>`;
+  }
+
+  window.addSuggestion = async function(idx){
+    const nameEl = document.getElementById(`sugg-name-${idx}`);
+    const name = nameEl.value.trim();
+    if (!name) { nameEl.style.borderColor = "var(--coral)"; nameEl.placeholder = t('suggNameRequired'); return; }
+    const category = document.getElementById(`sugg-cat-${idx}`).value;
+    const url = document.getElementById(`sugg-url-${idx}`).value.trim();
+    const note = document.getElementById(`sugg-note-${idx}`).value.trim();
+    const author = document.getElementById(`sugg-author-${idx}`).value.trim() || (lang === 'fr' ? "Anonyme" : "Anonymous");
+
+    const zone = document.getElementById(`suggestion-zone-${idx}`);
+    zone.innerHTML = `<p class="no-comments">${t('suggThanks', escapeHTML(author))}${supabaseClient ? "" : t('suggDemo')}.</p>`;
+
+    if (supabaseClient) {
+      const { error } = await supabaseClient.from('suggestions').insert({
+        spot_index: idx, spot_name: spots[idx].name, category, name, url, note, author
+      });
+      if (error) console.warn("Supabase (suggestion) :", error.message);
+    }
+  };
+
+  const panelEl = document.getElementById('spot-panel');
+
+
+  function openSpot(idx){
+    currentOpenIdx = idx;
+    panelEl.innerHTML = buildPanelHTML(spots[idx], idx);
+    panelEl.scrollTop = 0;
+  }
+
+  // ── Indice sur la carte : « Touche un spot pour voir sa fiche » ──
+  // Affiché tant que le visiteur n'a touché aucun spot ; une fois vu, il ne revient plus (mémorisé dans le navigateur).
+  const HINT_KEY = 'wildspots_hint_done';
+  function hintAlreadyDone(){
+    try { return localStorage.getItem(HINT_KEY) === '1'; } catch (e) { return false; }
+  }
+  function dismissMapHint(){
+    const hint = document.getElementById('map-hint');
+    if (hint) {
+      hint.classList.add('gone');
+      setTimeout(() => hint.remove(), 400);
+    }
+    try { localStorage.setItem(HINT_KEY, '1'); } catch (e) { /* navigation privée : pas grave */ }
+  }
+  if (!hintAlreadyDone()) {
+    const hint = document.createElement('div');
+    hint.className = 'map-hint';
+    hint.id = 'map-hint';
+    hint.setAttribute('aria-hidden', 'true'); // simple aide visuelle ; les pins ont déjà leur nom
+    hint.textContent = t('mapHint');
+    document.getElementById('map').appendChild(hint);
+  }
+
+  // Quand le visiteur touche un spot (pin ou ligne de la liste) : on ouvre la fiche,
+  // et sur smartphone on fait défiler la page jusqu'à elle (sinon elle reste cachée sous la carte).
+  function selectSpot(idx){
+    openSpot(idx);
+    dismissMapHint();
+    if (window.matchMedia('(max-width: 860px)').matches) {
+      panelEl.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+  }
+
+  window.toggleAccordion = function(bodyId, headerBtn){
+    const body = document.getElementById(bodyId);
+    if (!body) return;
+    const chevron = headerBtn.querySelector('.accordion-chevron');
+    const isOpen = body.style.display === 'block';
+    body.style.display = isOpen ? 'none' : 'block';
+    if (chevron) chevron.textContent = isOpen ? '▸' : '▾';
+  };
+
+  window.openAndScroll = function(anchorId){
+    const header = document.getElementById(anchorId);
+    if (!header) return;
+    const body = document.getElementById(`${anchorId}-body`);
+    if (body && body.style.display !== 'block') {
+      body.style.display = 'block';
+      const chevron = header.querySelector('.accordion-chevron');
+      if (chevron) chevron.textContent = '▾';
+    }
+    header.scrollIntoView({ behavior:'smooth', block:'start' });
+  };
+
+  window.addComment = async function(idx){
+    const authorEl = document.getElementById(`comment-author-${idx}`);
+    const textEl = document.getElementById(`comment-text-${idx}`);
+    const text = textEl.value.trim();
+    if (!text) return;
+    const author = authorEl.value.trim() || (lang === 'fr' ? "Anonyme" : "Anonymous");
+    if (!communityComments[idx]) communityComments[idx] = [];
+    communityComments[idx].push({
+      author,
+      text,
+      date: new Date().toLocaleDateString('fr-FR', { day:'2-digit', month:'2-digit' })
+    });
+    document.getElementById(`comments-list-${idx}`).innerHTML = renderComments(idx);
+    textEl.value = "";
+    authorEl.value = "";
+    if (supabaseClient) {
+      const { error } = await supabaseClient.from('comments').insert({
+        spot_index: idx, spot_name: spots[idx].name, author, comment: text
+      });
+      if (error) console.warn("Supabase (comment) :", error.message);
+    }
+  };
+
+  loadCommunityData();
+
+
+  const markers = spots.map((spot, idx) => {
+    const marker = L.circleMarker([spot.lat, spot.lng], {
+      radius: 7,
+      color: "#F7F4EC",
+      weight: 1.5,
+      fillColor: primaryColor(spot.sports),
+      fillOpacity: 0.95
+    });
+
+    marker.bindTooltip(spot.name, { direction:"top", offset:[0,-6] });
+    marker.on('click', () => selectSpot(idx));
+    marker.spotSports = spot.sports;
+    marker.addTo(map);
+    return marker;
+  });
+
+  let activeSport = "all";
+  let currentView = "map"; // la carte est la vue affichée par défaut (comme dans le HTML)
+
+  function updateMarkerVisibility(){
+    markers.forEach((m, idx) => {
+      const spot = spots[idx];
+      const show = activeSport === "all" || spot.sports.includes(activeSport);
+      if (show && !map.hasLayer(m)) m.addTo(map);
+      if (!show && map.hasLayer(m)) map.removeLayer(m);
+    });
+    if (currentView === "table") renderTableView();
+  }
+
+  const SPORT_ICONS = {
+    all: `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2 15c1.8-2.4 3.6-2.4 5.4 0s3.6 2.4 5.4 0 3.6-2.4 5.4 0 3.6 2.4 3.8 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 10c1.8-2.4 3.6-2.4 5.4 0s3.6 2.4 5.4 0 3.6-2.4 5.4 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/></svg>`,
+    surf: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="12" cy="9" rx="2.8" ry="7.4" transform="rotate(28 12 9)" fill="currentColor"/><path d="M2 17.5c2.2-3 4.4-3 6.6 0s4.4 3 6.6 0 4.4-3 6.6 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`,
+    kite: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.5 17 9 12 15 7 9Z" fill="currentColor"/><path d="M12 15 9.3 20.5M12 15l2.7 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><rect x="7.3" y="20.3" width="9.4" height="1.7" rx="0.85" fill="currentColor"/></svg>`,
+    wind: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.2 2.8c-4 1.4-4.6 8-.2 10.6z" fill="currentColor"/><line x1="12.2" y1="2.5" x2="12.2" y2="18.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><ellipse cx="12.2" cy="20.3" rx="7.6" ry="1.6" fill="currentColor"/></svg>`,
+    wingfoil: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 7.5c4-3.6 15-3.6 19 0-4 2.4-15 2.4-19 0Z" fill="currentColor"/><rect x="9.3" y="8.6" width="5.4" height="2" rx="1" fill="currentColor"/><line x1="12" y1="10.6" x2="12" y2="18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><line x1="7.5" y1="19.6" x2="16.5" y2="19.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`
+  };
+
+  const filterDefs = [
+    {key:"all", label:"Tous", icon:SPORT_ICONS.all, color:"#F7F4EC"},
+    {key:"surf", label:"Surf", icon:SPORT_ICONS.surf, color:SPORT_COLORS.surf},
+    {key:"kite", label:"Kite", icon:SPORT_ICONS.kite, color:SPORT_COLORS.kite},
+    {key:"wind", label:"Wind", icon:SPORT_ICONS.wind, color:SPORT_COLORS.wind},
+    {key:"wingfoil", label:"Wingfoil", icon:SPORT_ICONS.wingfoil, color:SPORT_COLORS.wingfoil}
+  ];
+
+  const filtersEl = document.getElementById('filters');
+  filterDefs.forEach(f => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-pill' + (f.key === 'all' ? ' active' : '');
+    btn.dataset.key = f.key;
+    btn.title = f.key === 'all' ? t('filterAll') : f.label;
+    btn.setAttribute('aria-label', btn.title);
+    btn.style.borderColor = f.color;
+    btn.setAttribute('aria-pressed', f.key === 'all' ? 'true' : 'false');
+    // Icône du sport (couleur du sport) + libellé
+    btn.innerHTML = `<span class="pill-icon" aria-hidden="true" style="color:${f.color}">${f.icon}</span><span${f.key === 'all' ? ' id="filter-label-all"' : ''}>${f.key === 'all' ? t('filterAll') : f.label}</span>`;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#filters .filter-pill').forEach(p => { p.classList.remove('active'); p.setAttribute('aria-pressed', 'false'); });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+      activeSport = f.key;
+      updateMarkerVisibility();
+    });
+    filtersEl.appendChild(btn);
+  });
+
+  // ── Sélecteur de destination : gros bouton unique, plus de repli en icône ──
+  const zoneCtaLabel = document.getElementById('zone-cta-label');
+  const zoneDropdown = document.getElementById('zone-dropdown');
+  const zoneCtaBtn = document.getElementById('zone-cta-btn');
+  zoneCtaLabel.textContent = t('zoneActiveLabel');
+
+  zoneCtaBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    zoneDropdown.classList.toggle('open');
+    // Smartphone : on remonte le menu en haut de l'écran pour qu'il soit entièrement visible (formulaire compris)
+    if (zoneDropdown.classList.contains('open') && window.matchMedia('(max-width: 860px)').matches) {
+      document.querySelector('.zone-search-wrap').scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+  });
+  document.querySelector('.zone-option[data-zone="all"]').addEventListener('click', () => {
+    zoneCtaLabel.textContent = t('zoneActiveLabel');
+    zoneDropdown.classList.remove('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.zone-search-wrap')) zoneDropdown.classList.remove('open');
+  });
+
+  // ── Légende IA/Communauté/Ambassadeur : repliée par défaut, dépliée au clic ──
+  const trustLegendToggle = document.getElementById('trust-legend-toggle');
+  const trustLegend = document.getElementById('trust-legend');
+  trustLegendToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    trustLegend.classList.toggle('open');
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.trust-legend-wrap')) trustLegend.classList.remove('open');
+  });
+
+  // ── Boutons principaux : « Explorer la carte » et « Voir la liste » ──
+  document.getElementById('cta-explore').addEventListener('click', () => {
+    document.getElementById('view-btn-map').click();
+    document.getElementById('map').scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+  document.getElementById('cta-list').addEventListener('click', () => {
+    document.getElementById('view-btn-table').click();
+    document.getElementById('table-view').scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+
+  // ── « Bientôt » : prévenir l'utilisateur quand une nouvelle destination ouvre ──
+  // Les emails vont dans la table Supabase « waitlist » (voir README.md : le script SQL à lancer une fois).
+  const soonForm = document.getElementById('soon-form');
+  const soonEmail = document.getElementById('soon-email');
+  const soonWish = document.getElementById('soon-wish');
+  const soonBtn = document.getElementById('soon-btn');
+  const soonMsg = document.getElementById('soon-msg');
+
+  function showSoonMsg(key, ok){
+    soonMsg.dataset.key = key;            // gardé pour retraduire si on change de langue
+    soonMsg.textContent = t(key);
+    soonMsg.className = 'soon-msg ' + (ok ? 'ok' : 'err');
+  }
+
+  soonForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = soonEmail.value.trim();
+    const wish = soonWish.value.trim();
+
+    // Champ piège rempli = robot : on fait semblant que tout va bien, sans rien enregistrer
+    if (document.getElementById('soon-website').value) { showSoonMsg('soonThanks', true); soonForm.reset(); return; }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      showSoonMsg('soonInvalid', false);
+      soonEmail.focus();
+      return;
+    }
+    if (!supabaseClient) { showSoonMsg('soonDemo', false); return; }
+
+    soonBtn.disabled = true;
+    try {
+      const { error } = await supabaseClient.from('waitlist').insert({ email, wish: wish || null, lang });
+      if (error) throw error;
+      showSoonMsg('soonThanks', true);
+      soonForm.reset();
+    } catch (err) {
+      console.warn("Supabase (waitlist) :", (err && err.message) || err);
+      showSoonMsg('soonError', false);
+    } finally {
+      soonBtn.disabled = false;
+    }
+  });
+
+  // ── Vue tableau : liste scrollable des spots, alternative à la carte pour mobile ──
+  // Variables conservées à l'état neutre (le quiz qui les alimentait a été retiré) :
+  // wizardResults reste toujours null → le tableau affiche la liste normale.
+  // wizardAnswers reste vide → computeFullBudget() renvoie toujours null → repli sur le budget simple.
+  let wizardAnswers = { who: null, priorities: [], duration: null };
+  let wizardResults = null;
+
+  function renderTableView(){
+    const tableEl = document.getElementById('table-view');
+    const durationKey = 'min';
+
+    let visibleSpots;
+    let banner = "";
+    if (wizardResults) {
+      visibleSpots = wizardResults.map(idx => ({ spot: spots[idx], idx }));
+      banner = `<div class="wizard-results-banner"><span>${t('wizardResultsLabel')} (${visibleSpots.length})</span><button type="button" class="wizard-reset-btn" id="wizard-reset-btn">${t('wizardReset')}</button></div>`;
+    } else {
+      visibleSpots = spots
+        .map((spot, idx) => ({ spot, idx }))
+        .filter(({ spot }) => activeSport === "all" || spot.sports.includes(activeSport));
+    }
+
+    tableEl.innerHTML = banner + visibleSpots.map(({ spot, idx }) => {
+      const d = lang === 'en' && spot.en ? spot.en : spot;
+      const dots = spot.sports.map(s => `<span class="row-dot" style="background:${SPORT_COLORS[s]}">${SPORT_ICONS[s]}</span>`).join("");
+      const budgetTag = (wizardResults && spot.stay) ? `<span class="spot-row-match">${budgetEstimate(inferKind(spot.stay.name))[durationKey]}</span>` : "";
+      return `
+        <div class="spot-row" data-idx="${idx}">
+          <div class="spot-row-sports">${dots}</div>
+          <div class="spot-row-main">
+            <div class="spot-row-name">${spot.name}</div>
+            <div class="spot-row-meta">${spot.commune} · ${d.level}</div>
+          </div>
+          ${budgetTag}
+          <div class="spot-row-arrow">→</div>
+        </div>`;
+    }).join("");
+
+    tableEl.querySelectorAll('.spot-row').forEach(row => {
+      row.addEventListener('click', () => selectSpot(parseInt(row.dataset.idx, 10)));
+    });
+    const resetBtn = document.getElementById('wizard-reset-btn');
+    if (resetBtn) resetBtn.addEventListener('click', () => { wizardResults = null; renderTableView(); });
+  }
+
+  document.getElementById('view-btn-map').addEventListener('click', () => {
+    currentView = "map";
+    document.getElementById('view-btn-map').classList.add('active');
+    document.getElementById('view-btn-table').classList.remove('active');
+    document.getElementById('map').style.display = 'block';
+    document.getElementById('table-view').style.display = 'none';
+    setTimeout(() => map.invalidateSize(), 50);
+  });
+  document.getElementById('view-btn-table').addEventListener('click', () => {
+    currentView = "table";
+    document.getElementById('view-btn-table').classList.add('active');
+    document.getElementById('view-btn-map').classList.remove('active');
+    document.getElementById('map').style.display = 'none';
+    document.getElementById('table-view').style.display = 'block';
+    renderTableView();
+  });
+  renderTableView();
+
+  applyStaticTranslations();
+</script>
+</body>
+</html>
