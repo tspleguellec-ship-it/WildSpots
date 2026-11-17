@@ -1289,7 +1289,7 @@
       rowNiveau: "Niveau", rowSaison: "Saison", rowConditions: "Conditions", rowAmbiance: "Ambiance",
       rowScore: "Score", rowAcces: "Accès", rowAutour: "Autour du spot",
       linkVerifie: "Lien vérifié web", linkEcole: "École / location", linkHebergement: "Hébergement",
-      linkSiteOfficiel: "Voir le site officiel →", linkTarifs: "Voir tarifs & disponibilités →",
+      linkSiteOfficiel: "Voir le site officiel →", proCard: "Contact, horaires & avis", proSite: "Site officiel", linkTarifs: "Voir tarifs & disponibilités →",
       estimationIA: "· estimation, à confirmer",
       cardAcces: "Accès", secAcces: "Accès & services", callBtn: "Appeler", routeBtn: "Itinéraire", staysNote: "Sélection WildSpots pour les pratiquants, à confirmer.", viewContact: "Voir / contacter", tagSolo: "Solo", tagAmis: "Amis", tagFamille: "Famille", tagCouple: "Couple", tagBudget: "Petit budget", verifiedOn: "Vérifié le", srcLabel: "Sources", rowParking: "Parking", rowServices: "Services", rowSurveillance: "Surveillance", rowChiens: "Chiens", rowAccessibilite: "Accessibilité", rowAdresse: "Adresse", badgeOfficiel: "Sources officielles",
       badgeIA: "IA", badgeCommunaute: c => `✓ Communauté · ${c}`, badgeAmbassadeur: "🛡️ Validé ambassadeur",
@@ -1364,7 +1364,7 @@
       rowNiveau: "Level", rowSaison: "Season", rowConditions: "Conditions", rowAmbiance: "Vibe",
       rowScore: "Score", rowAcces: "Access", rowAutour: "Around the spot",
       linkVerifie: "Web-verified link", linkEcole: "School / rental", linkHebergement: "Accommodation",
-      linkSiteOfficiel: "See official site →", linkTarifs: "See rates & availability →",
+      linkSiteOfficiel: "See official site →", proCard: "Contact, hours & reviews", proSite: "Official site", linkTarifs: "See rates & availability →",
       estimationIA: "· estimate, to be confirmed",
       cardAcces: "Access", secAcces: "Access & facilities", callBtn: "Call", routeBtn: "Directions", staysNote: "WildSpots selection for riders, to be confirmed.", viewContact: "View / contact", tagSolo: "Solo", tagAmis: "Friends", tagFamille: "Family", tagCouple: "Couple", tagBudget: "Budget", verifiedOn: "Checked on", srcLabel: "Sources", rowParking: "Parking", rowServices: "Facilities", rowSurveillance: "Lifeguard", rowChiens: "Dogs", rowAccessibilite: "Accessibility", rowAdresse: "Address", badgeOfficiel: "Official sources",
       badgeIA: "AI", badgeCommunaute: c => `✓ Community · ${c}`, badgeAmbassadeur: "🛡️ Ambassador verified",
@@ -1537,6 +1537,475 @@
     : null;
   if (!supabaseClient) {
     console.warn("WildSpots : Supabase non configuré — avis et validations restent en mémoire locale (non partagés). Voir README.md.");
+  }
+
+  // ── Annuaire des pros par zone (sélection WildSpots, à confirmer par la communauté) ──
+  // t = type d'hébergement : camp (surf camp / lodge), hostel (auberge), hotel, camping, res (résidence/appart)
+  // k = type d'école : surf, wing, kite, voile, sup, efoil
+  // u = site officiel quand il est connu ; sinon la fiche Google Maps (tél., site, horaires, avis) sert de contact
+  const PRO_ZONES = {
+    bisca: {
+      stays: [
+        {n:"Camping Campéole Plage Sud", c:"Biscarrosse-Plage", t:"camping", u:"https://www.ms-vacances.com/camping-campeole/camping-plage-sud/decouvrir-le-camping/"},
+        {n:"UCPA Biscarrosse Océan", c:"Biscarrosse", t:"camp", u:"https://www.ucpa.com/destination/village-sportif/biscarrosse-ocean/en"},
+        {n:"La Boga Surf House", c:"Biscarrosse", t:"camp"},
+        {n:"La Maison Bisca", c:"Biscarrosse", t:"camp"},
+        {n:"Hoya Surf School (surf camp)", c:"Biscarrosse", t:"camp"},
+        {n:"Aloha Surf Lodge", c:"Sainte-Eulalie-en-Born", t:"camp"},
+        {n:"Tatiou Surf Camp", c:"Bias", t:"camp"}
+      ],
+      schools: [
+        {n:"École de surf La Vigie", c:"Biscarrosse-Plage", k:"surf", u:"https://www.la-vigie-biscarrosse.com/"},
+        {n:"Point Break", c:"Biscarrosse", k:"surf"},
+        {n:"Gang Surf", c:"Biscarrosse", k:"surf"},
+        {n:"Biscaradise", c:"Biscarrosse", k:"surf"},
+        {n:"Monkey Surf", c:"Biscarrosse-Plage", k:"surf"},
+        {n:"Hoya Surf School", c:"Biscarrosse", k:"surf"},
+        {n:"Les Petits Landais", c:"Biscarrosse", k:"surf"},
+        {n:"Mer & Sunshine", c:"Biscarrosse", k:"surf"}
+      ]
+    },
+    mimizan: {
+      stays: [
+        {n:"RideBoard Surfcamp", c:"Mimizan", t:"camp"},
+        {n:"Pura Vida Lodge", c:"Mimizan", t:"camp"},
+        {n:"Surflife Mimizan", c:"Mimizan (Lespecier)", t:"camp"},
+        {n:"Camping de la Plage (Siblu)", c:"Mimizan-Plage", t:"camping"},
+        {n:"Camping Marina Landes", c:"Mimizan-Plage", t:"camping"},
+        {n:"Camping Le Lac", c:"Mimizan", t:"camping"},
+        {n:"Camping La Maïade", c:"Mimizan", t:"camping"},
+        {n:"Tatiou Surf Camp", c:"Bias", t:"camp"},
+        {n:"Aloha Surf Lodge", c:"Sainte-Eulalie-en-Born", t:"camp"}
+      ],
+      schools: [
+        {n:"École Silver Coast", c:"Mimizan", k:"surf", u:"https://silvercoast-surf.com/"},
+        {n:"Quiksilver La Garluche", c:"Mimizan-Plage", k:"surf"},
+        {n:"La Sud Surf School", c:"Mimizan", k:"surf"},
+        {n:"Watu Surf School", c:"Mimizan-Plage", k:"surf"},
+        {n:"Sama Sama École de Surf", c:"Mimizan-Plage", k:"surf"},
+        {n:"Mimizan Surf Academy", c:"Mimizan", k:"surf"},
+        {n:"Martin Surf School", c:"Mimizan", k:"surf"},
+        {n:"École de surf de Lespecier", c:"Mimizan", k:"surf"},
+        {n:"All Water (kayaksurf)", c:"Mimizan", k:"surf"}
+      ]
+    },
+    contis: {
+      stays: [
+        {n:"Guesthouse Evasion", c:"Contis", t:"camp"},
+        {n:"Camping Lous Seurrots", c:"Contis-Plage", t:"camping"},
+        {n:"Camping Les Dunes de Contis", c:"Saint-Julien-en-Born", t:"camping"},
+        {n:"Camping du Vieux Moulin", c:"Saint-Julien-en-Born", t:"camping"},
+        {n:"Surflife Mimizan", c:"Mimizan (Lespecier)", t:"camp"},
+        {n:"Pura Vida Lodge", c:"Mimizan", t:"camp"},
+        {n:"Camping Eurosol", c:"Vielle-Saint-Girons", t:"camping"}
+      ],
+      schools: [
+        {n:"Max Respect Contis", c:"Contis-Plage", k:"surf", u:"https://www.max-respect.com/fr/surf-contis.htm"},
+        {n:"Contis Surf School", c:"Contis-Plage", k:"surf"},
+        {n:"École de Surf Contis", c:"Contis-Plage", k:"surf"},
+        {n:"Go4surf", c:"Contis-Plage", k:"surf"},
+        {n:"Club des P'tits Loups", c:"Saint-Julien-en-Born", k:"surf"}
+      ]
+    },
+    stgirons: {
+      stays: [
+        {n:"St Girons Surf House", c:"Saint-Girons-Plage", t:"camp"},
+        {n:"Camping L'Océane", c:"Vielle-Saint-Girons", t:"camping", u:"https://www.camping-oceane.fr/"},
+        {n:"Camping Eurosol", c:"Vielle-Saint-Girons", t:"camping"},
+        {n:"Camping Les Tourterelles", c:"Vielle-Saint-Girons", t:"camping"},
+        {n:"Silver Landes Surfcamp", c:"Léon", t:"camp"},
+        {n:"Surf Sport Lodge", c:"Léon", t:"camp"},
+        {n:"Nature Surf Camp", c:"Messanges", t:"camp"},
+        {n:"Camping Lous Seurrots", c:"Contis-Plage", t:"camping"}
+      ],
+      schools: [
+        {n:"Max Respect St Girons", c:"Saint-Girons-Plage", k:"surf", u:"https://www.max-respect.com/fr/surf-saint-girons.htm"},
+        {n:"École de surf One Palm", c:"Vielle-Saint-Girons (Lette Blanche)", k:"surf"},
+        {n:"Natura Surf", c:"Léon", k:"surf"},
+        {n:"Canoë Surfing", c:"Léon", k:"surf"},
+        {n:"Silver Landes Surfcamp", c:"Léon", k:"surf"}
+      ]
+    },
+    leon: {
+      stays: [
+        {n:"Silver Landes Surfcamp", c:"Léon", t:"camp"},
+        {n:"Surf Sport Lodge", c:"Léon", t:"camp"},
+        {n:"St Girons Surf House", c:"Saint-Girons-Plage", t:"camp"},
+        {n:"Camping Eurosol", c:"Vielle-Saint-Girons", t:"camping"},
+        {n:"Nature Surf Camp", c:"Messanges", t:"camp"},
+        {n:"La Dune Surf Camp", c:"Messanges", t:"camp", u:"https://www.ladunesurfcamp.com/"},
+        {n:"Camping Les Cigales (UCPA)", c:"Moliets-et-Maa", t:"camping", u:"https://www.ucpa.com/destination/village-sportif/moliets/en"}
+      ],
+      schools: [
+        {n:"Foil in Landes", c:"Léon (lac)", k:"efoil", u:"https://www.foilinlandes.com/"},
+        {n:"École de surf One Palm (SUP lac de Léon)", c:"Léon", k:"sup"},
+        {n:"Natura Surf", c:"Léon", k:"surf"},
+        {n:"Canoë Surfing", c:"Léon", k:"surf"},
+        {n:"Boardhead Wingfoil School – Evad'Sport", c:"Soustons (lac)", k:"wing"},
+        {n:"Club de Voile Soustons Marensin", c:"Soustons (lac)", k:"voile"},
+        {n:"Pôle Nautique de Soustons Plage", c:"Soustons", k:"wing", u:"https://pole-nautique-soustons-plage.com/fr/ecole-de-voile/"}
+      ]
+    },
+    moliets: {
+      stays: [
+        {n:"Camping Les Cigales (UCPA)", c:"Moliets-et-Maa", t:"camping", u:"https://www.ucpa.com/destination/village-sportif/moliets/en"},
+        {n:"Dreamsea Surf Camp", c:"Moliets-et-Maa", t:"camp"},
+        {n:"La Dune Surf Camp", c:"Messanges", t:"camp", u:"https://www.ladunesurfcamp.com/"},
+        {n:"Nature Surf Camp", c:"Messanges", t:"camp"},
+        {n:"Nature et Océan", c:"Messanges", t:"res"},
+        {n:"Atlantic Surf Lodge", c:"Vieux-Boucau-les-Bains", t:"camp", u:"https://atlantic-surflodge.com/fr/bienvenue-chez-atlantic-surf-lodge/"},
+        {n:"Vieux Boucau Surflodge / Villa Tiki", c:"Vieux-Boucau-les-Bains", t:"camp"},
+        {n:"Surf Camp Planète Vacances", c:"Vieux-Boucau-les-Bains", t:"camp"},
+        {n:"Silver Landes Surfcamp", c:"Léon", t:"camp"},
+        {n:"Surf Sport Lodge", c:"Léon", t:"camp"}
+      ],
+      schools: [
+        {n:"Maa Surf School & Shop", c:"Moliets-et-Maa", k:"surf", u:"https://www.molietsetmaasurfschool.com/"},
+        {n:"Moliets Soonline Surf School", c:"Moliets-et-Maa", k:"surf"},
+        {n:"ESCF / Billabong Surfschool Moliets", c:"Moliets-et-Maa", k:"surf"},
+        {n:"École de surf du Golf", c:"Moliets-et-Maa", k:"surf"},
+        {n:"Messanges Surf School", c:"Messanges", k:"surf", u:"https://messanges-surf-school.com/"},
+        {n:"Zabou Surf School", c:"Messanges", k:"surf"},
+        {n:"École de Surf Lacabana", c:"Messanges", k:"surf"},
+        {n:"Energy Surf School into Yoga", c:"Messanges", k:"surf"},
+        {n:"ESCF Vieux-Boucau", c:"Vieux-Boucau-les-Bains", k:"surf", u:"https://ecoledesurf.com/ecoles/surf-vieux-boucau/"},
+        {n:"Surf School Vieux Boucau", c:"Vieux-Boucau-les-Bains", k:"surf"},
+        {n:"Dreamlandes", c:"Vieux-Boucau-les-Bains", k:"surf"}
+      ]
+    },
+    soustons: {
+      stays: [
+        {n:"Atlantic Surf Lodge", c:"Vieux-Boucau-les-Bains", t:"camp", u:"https://atlantic-surflodge.com/fr/bienvenue-chez-atlantic-surf-lodge/"},
+        {n:"Vieux Boucau Surflodge / Villa Tiki", c:"Vieux-Boucau-les-Bains", t:"camp"},
+        {n:"Surf Camp Planète Vacances", c:"Vieux-Boucau-les-Bains", t:"camp"},
+        {n:"La Dune Surf Camp", c:"Messanges", t:"camp", u:"https://www.ladunesurfcamp.com/"},
+        {n:"Nature Surf Camp", c:"Messanges", t:"camp"},
+        {n:"Natural Surf Lodge", c:"Seignosse", t:"camp", u:"https://www.naturalsurfschool.com/surf-hebergement/"}
+      ],
+      schools: [
+        {n:"Pôle Nautique de Soustons Plage", c:"Soustons (Port d'Albret)", k:"wing", u:"https://pole-nautique-soustons-plage.com/fr/ecole-de-voile/"},
+        {n:"Boardhead Wingfoil School – Evad'Sport", c:"Soustons (lac)", k:"wing"},
+        {n:"Club de Voile Soustons Marensin", c:"Soustons (lac)", k:"voile"},
+        {n:"ESCF Vieux-Boucau", c:"Vieux-Boucau-les-Bains", k:"surf", u:"https://ecoledesurf.com/ecoles/surf-vieux-boucau/"},
+        {n:"Surf School Vieux Boucau", c:"Vieux-Boucau-les-Bains", k:"surf"}
+      ]
+    },
+    seignosse: {
+      stays: [
+        {n:"Natural Surf Lodge", c:"Seignosse", t:"camp", u:"https://www.naturalsurfschool.com/surf-hebergement/"},
+        {n:"Secret Wave Surf Camp", c:"Seignosse (Estagnots)", t:"camp"},
+        {n:"Surf House Les Estagnots", c:"Seignosse", t:"camp"},
+        {n:"Surfer's Villa", c:"Seignosse", t:"camp"},
+        {n:"Naturéo Surf Camp", c:"Seignosse", t:"camp"},
+        {n:"Bourdaines Surf School (hébergement)", c:"Seignosse", t:"camp"},
+        {n:"Surf Camp Mandago Surf Home", c:"Seignosse", t:"camp"},
+        {n:"Camping Oceliances", c:"Seignosse", t:"camping"},
+        {n:"Hossie Surf Camp", c:"Hossegor", t:"camp"},
+        {n:"JO&JOE Hossegor", c:"Hossegor", t:"hostel"}
+      ],
+      schools: [
+        {n:"École Aloha", c:"Seignosse (Bourdaines)", k:"surf", u:"https://www.aloha-ecoledesurf.com/"},
+        {n:"ESCF Seignosse Les Bourdaines", c:"Seignosse (Bourdaines)", k:"surf"},
+        {n:"École L'Agréou", c:"Seignosse (Penon)", k:"surf", u:"https://www.lagreou-surf-seignosse.com/"},
+        {n:"École de Surf Seignosse Penon", c:"Seignosse (Penon)", k:"surf"},
+        {n:"Seignosse Surf School", c:"Seignosse (Penon)", k:"surf"},
+        {n:"Lost Surf School", c:"Seignosse (Agréou)", k:"surf"},
+        {n:"Chill Surf School", c:"Seignosse (Penon)", k:"surf"},
+        {n:"Boarding Mania Surf School", c:"Seignosse (Penon)", k:"surf"},
+        {n:"Authentique École de Surf", c:"Seignosse", k:"surf"},
+        {n:"Oxbow Surf School Les Estagnots", c:"Seignosse (Estagnots)", k:"surf"}
+      ]
+    },
+    hossegor: {
+      stays: [
+        {n:"Hôtel de La Plage", c:"Hossegor", t:"hotel"},
+        {n:"JO&JOE Hossegor", c:"Hossegor", t:"hostel"},
+        {n:"Koala Surf Camp", c:"Hossegor", t:"camp"},
+        {n:"Hossie Surf Camp", c:"Hossegor", t:"camp"},
+        {n:"Southwest Surfhouse", c:"Hossegor", t:"camp"},
+        {n:"Hôtel Les Fougères", c:"Hossegor", t:"hotel", u:"https://ecoledesurf.com/ecoles/surf-hossegor/hebergement/"},
+        {n:"Les Hortensias du Lac", c:"Hossegor", t:"hotel"},
+        {n:"Wood'n Sea Surf Lodge", c:"Capbreton", t:"camp"},
+        {n:"Secret Wave Surf Camp", c:"Seignosse (Estagnots)", t:"camp"},
+        {n:"Surf House Les Estagnots", c:"Seignosse", t:"camp"}
+      ],
+      schools: [
+        {n:"Darrigood Surf School (ESCF Hossegor)", c:"Hossegor", k:"surf", u:"https://ecoledesurf.com/ecoles/surf-hossegor/", phone:"06 84 15 21 20"},
+        {n:"Watermansport Surfschool", c:"Hossegor", k:"surf", u:"https://watermansport-surfschool.com/"},
+        {n:"Yo Surf School", c:"Hossegor", k:"surf", u:"https://hossegor-surf.fr/"},
+        {n:"Hossegor Surf Club", c:"Hossegor", k:"surf"},
+        {n:"Surftrip Surfschool", c:"Hossegor", k:"surf"},
+        {n:"Tao Magic Glisse", c:"Hossegor", k:"surf"},
+        {n:"Vive le Surf", c:"Hossegor", k:"surf"},
+        {n:"Chipiron Surfschool", c:"Hossegor", k:"surf"},
+        {n:"Estim Friends", c:"Hossegor", k:"surf"},
+        {n:"École de Surf Hossegor", c:"Hossegor", k:"surf"}
+      ]
+    },
+    capbreton: {
+      stays: [
+        {n:"Water Addict Surf Camp", c:"Capbreton", t:"camp", u:"https://www.water-addict.com/"},
+        {n:"Bodysurfhouse", c:"Capbreton", t:"camp"},
+        {n:"Le Surf Spot", c:"Capbreton", t:"camp"},
+        {n:"Wood'n Sea Surf Lodge", c:"Capbreton", t:"camp"},
+        {n:"Coco Beach Sporting Lodge", c:"Capbreton", t:"camp"},
+        {n:"Spirit Surf School (surf camp)", c:"Capbreton", t:"camp"},
+        {n:"JO&JOE Hossegor", c:"Hossegor", t:"hostel"},
+        {n:"Koala Surf Camp", c:"Hossegor", t:"camp"},
+        {n:"Board n Breakfast", c:"Labenne", t:"camp"},
+        {n:"Shifting Sands Surf House", c:"Labenne", t:"camp"}
+      ],
+      schools: [
+        {n:"Water Addict Surf Academy (WASA)", c:"Capbreton", k:"surf", u:"https://www.water-addict.com/"},
+        {n:"Capbreton Surfer School", c:"Capbreton", k:"surf"},
+        {n:"Capbreton Surf School", c:"Capbreton", k:"surf"},
+        {n:"Spirit Surf School", c:"Capbreton", k:"surf"},
+        {n:"Ma'ohi Surf School", c:"Capbreton", k:"surf"},
+        {n:"Santocha Capbreton Surf Club", c:"Capbreton", k:"surf"},
+        {n:"ESL – École de surf des Landes", c:"Capbreton", k:"surf"},
+        {n:"Ted Surf School", c:"Capbreton", k:"surf"},
+        {n:"Alizé Arnaud Surf School", c:"Capbreton", k:"surf"},
+        {n:"Surf Océanide", c:"Capbreton", k:"surf"}
+      ]
+    },
+    labenne: {
+      stays: [
+        {n:"Board n Breakfast", c:"Labenne", t:"camp"},
+        {n:"Shifting Sands Surf House", c:"Labenne", t:"camp"},
+        {n:"Camping Sylvamar", c:"Labenne-Océan", t:"camping", u:"https://www.camping-sylvamar.com/en/"},
+        {n:"Camping La Mer", c:"Labenne-Océan", t:"camping"},
+        {n:"Camping Le Boudigau", c:"Labenne", t:"camping"},
+        {n:"Camping municipal Les Pins Bleus", c:"Labenne", t:"camping"},
+        {n:"Green Resort", c:"Ondres", t:"camp"},
+        {n:"Espace Blue Océan", c:"Ondres", t:"camping"},
+        {n:"Camping Ondres Plage (Sandaya)", c:"Ondres", t:"camping"},
+        {n:"Camping Lou Pignada", c:"Ondres", t:"camping"}
+      ],
+      schools: [
+        {n:"Tiki Surf School", c:"Labenne-Océan", k:"surf", u:"https://www.tikisurfschool.com/"},
+        {n:"Go and Surf (Labenne / Ondres)", c:"Ondres", k:"surf", u:"https://www.goandsurf.com/"},
+        {n:"Surf et Skate Olivier Odero", c:"Labenne", k:"surf"},
+        {n:"Sharkpool École de surf", c:"Labenne", k:"surf"},
+        {n:"Pulse Surf Coaching", c:"Ondres", k:"surf"},
+        {n:"Tarnos Surf Academy", c:"Tarnos", k:"surf"},
+        {n:"Surfescapade", c:"Tarnos", k:"surf", u:"https://www.surf-escapade.com/"},
+        {n:"Surfer's Paradise", c:"Tarnos", k:"surf"}
+      ]
+    },
+    anglet: {
+      stays: [
+        {n:"Belambra Club Anglet – La Chambre d'Amour", c:"Anglet", t:"res", u:"https://ecoledesurf.com/ecoles/surf-anglet/hebergement/"},
+        {n:"Nami House", c:"Anglet", t:"camp"},
+        {n:"Surf Hostel Biarritz", c:"Anglet", t:"hostel"},
+        {n:"Domaine du Pignada", c:"Anglet", t:"hostel"},
+        {n:"Green Surf School & Surfcamp", c:"Anglet", t:"camp"},
+        {n:"VVF Résidence Anglet", c:"Anglet", t:"res"},
+        {n:"Zenao Appart'hôtels Anglet", c:"Anglet", t:"res"},
+        {n:"Novotel Resort & Spa Biarritz Anglet", c:"Anglet", t:"hotel"},
+        {n:"Hôtel Au Bon Coin", c:"Biarritz", t:"hotel"},
+        {n:"Mercure Président Biarritz Plage", c:"Biarritz", t:"hotel"}
+      ],
+      schools: [
+        {n:"École Rainbow", c:"Anglet", k:"surf", u:"https://www.ecoledesurf-rainbow.com/"},
+        {n:"John & Tim Surf School", c:"Anglet", k:"surf", u:"https://ecolesurf.com/ecole-de-surf-a-la-chambre-damour-anglet/"},
+        {n:"Uhaina École de Surf", c:"Anglet (Corsaires)", k:"surf"},
+        {n:"ESCF Anglet", c:"Anglet (Marinella)", k:"surf"},
+        {n:"Madrague Surf School", c:"Anglet", k:"surf"},
+        {n:"Gliss'Experience", c:"Anglet (Cavaliers)", k:"surf"},
+        {n:"ES64 – École de Surf 64", c:"Anglet (Cavaliers)", k:"surf"},
+        {n:"Anglet Surf Spirit", c:"Anglet", k:"surf"},
+        {n:"Club de la Glisse", c:"Anglet", k:"surf"},
+        {n:"Green Surf School", c:"Anglet", k:"surf"}
+      ]
+    },
+    biarritz: {
+      stays: [
+        {n:"Surf Hostel Biarritz", c:"Anglet", t:"hostel"},
+        {n:"Biarritz Surf Lodge (Surf Training)", c:"Biarritz", t:"camp", u:"https://www.surftraining.com/en/"},
+        {n:"Hôtel Au Bon Coin", c:"Biarritz", t:"hotel"},
+        {n:"Mercure Président Biarritz Plage", c:"Biarritz", t:"hotel"},
+        {n:"Hôtel de Silhouette", c:"Biarritz", t:"hotel"},
+        {n:"Hôtel Villa Koegui", c:"Biarritz", t:"hotel"},
+        {n:"Alfred Hotels Port-Vieux", c:"Biarritz", t:"hotel"},
+        {n:"Hôtel Jules Verne", c:"Biarritz", t:"hotel"},
+        {n:"Hotel Plaza Biarritz Plage", c:"Biarritz", t:"hotel"},
+        {n:"Nemea Appart Hotel Les Hauts de Milady", c:"Biarritz", t:"res"}
+      ],
+      schools: [
+        {n:"École Jo Moraiz (depuis 1966)", c:"Biarritz (Côte des Basques)", k:"surf", u:"https://www.jomoraiz.com/"},
+        {n:"ESF Biarritz Pays Basque", c:"Biarritz", k:"surf", u:"https://www.ecole-du-surf-francais-biarritz.fr/"},
+        {n:"La Vague Basque", c:"Biarritz (Côte des Basques)", k:"surf"},
+        {n:"Lagoondy École de Surf", c:"Biarritz (Côte des Basques)", k:"surf"},
+        {n:"Hastea Surf School", c:"Biarritz (Côte des Basques)", k:"surf"},
+        {n:"Biarritz Boardriders", c:"Biarritz (Grande Plage)", k:"surf"},
+        {n:"Biarritz Surf Training", c:"Biarritz", k:"surf", u:"https://www.surftraining.com/en/"},
+        {n:"Mahi Mahi (école itinérante)", c:"Biarritz", k:"surf"},
+        {n:"Aquality School", c:"Bidart / Biarritz", k:"surf"}
+      ]
+    },
+    bidart: {
+      stays: [
+        {n:"Le Surf Camp – villa à Guéthary", c:"Guéthary", t:"camp", u:"https://www.lecoledelaglisse.com/le-surf-camp-cote-basque-vacances-bidart-biarritz-surfcamp"},
+        {n:"Surf Naked Guéthary", c:"Guéthary", t:"hostel"},
+        {n:"Auberge Koskenia", c:"Bidart", t:"hostel"},
+        {n:"Joyu Surf Shack", c:"Bidart", t:"camp"},
+        {n:"Camping Erreka", c:"Bidart", t:"camping", u:"https://www.camping-erreka-bidart.com/"},
+        {n:"Yelloh! Village Berrua", c:"Bidart", t:"camping"},
+        {n:"Camping Le Pavillon Royal", c:"Bidart", t:"camping"},
+        {n:"Camping Ur Onea", c:"Bidart", t:"camping"},
+        {n:"Camping Le Ruisseau des Pyrénées", c:"Bidart", t:"camping"},
+        {n:"Kaliko hôtel-restaurant", c:"Bidart", t:"hotel"}
+      ],
+      schools: [
+        {n:"École de surf Bidart-Guéthary-Parlementia", c:"Guéthary", k:"surf", u:"https://www.ecole-de-surf-guethary-bidart.com/"},
+        {n:"École de surf C. Reinhardt", c:"Guéthary / Bidart", k:"surf"},
+        {n:"Just.Surf School Bidart", c:"Bidart", k:"surf"},
+        {n:"École de Surf Bidart", c:"Bidart", k:"surf"},
+        {n:"Bidarteko", c:"Bidart", k:"surf"},
+        {n:"École des Vagues", c:"Bidart", k:"surf"},
+        {n:"École de la Glisse", c:"Bidart", k:"surf", u:"https://www.lecoledelaglisse.com/"},
+        {n:"Taiba Surf Club", c:"Bidart", k:"surf"},
+        {n:"Aquality School", c:"Bidart", k:"surf"}
+      ]
+    },
+    sjdl: {
+      stays: [
+        {n:"Hôtel Lafitenia Resort", c:"Saint-Jean-de-Luz", t:"hotel", u:"https://www.lafiteniaresort.com/places/le-surf-a-saint-jean-de-luz/"},
+        {n:"Aparra Surfcamp Saint-Jean-de-Luz", c:"Saint-Jean-de-Luz (Erromardie)", t:"hostel"},
+        {n:"Camping municipal Erromardie", c:"Saint-Jean-de-Luz", t:"camping"},
+        {n:"Camping Merko Lacarra", c:"Saint-Jean-de-Luz", t:"camping"},
+        {n:"Grand Hôtel Loreamar Thalasso & Spa", c:"Saint-Jean-de-Luz", t:"hotel"},
+        {n:"Hôtel et Résidence La Réserve", c:"Saint-Jean-de-Luz", t:"hotel"},
+        {n:"Surf Naked Guéthary", c:"Guéthary", t:"hostel"},
+        {n:"Le Surf Camp – villa à Guéthary", c:"Guéthary", t:"camp", u:"https://www.lecoledelaglisse.com/le-surf-camp-cote-basque-vacances-bidart-biarritz-surfcamp"}
+      ],
+      schools: [
+        {n:"Lafitenia Surfcamp", c:"Saint-Jean-de-Luz (Lafitenia)", k:"surf"},
+        {n:"Artha Surf Club", c:"Saint-Jean-de-Luz (Acotz)", k:"surf"},
+        {n:"Ocean Adventure", c:"Saint-Jean-de-Luz", k:"surf"},
+        {n:"École de surf Bakun", c:"Saint-Jean-de-Luz", k:"surf"},
+        {n:"École de surf H2O", c:"Saint-Jean-de-Luz", k:"surf"},
+        {n:"École de Surf Français Quiksilver", c:"Saint-Jean-de-Luz", k:"surf"},
+        {n:"École de surf Le Spot", c:"Saint-Jean-de-Luz", k:"surf"},
+        {n:"Aquality School", c:"Bidart / Saint-Jean-de-Luz", k:"surf"}
+      ]
+    },
+    hendaye: {
+      stays: [
+        {n:"Centre de séjour Bella Vista", c:"Hendaye", t:"camp", u:"https://www.ecoledesurf-hendaye.com/surf-camp-groupes-famille-cote-basque.html"},
+        {n:"Aparra Surfcamp Hendaye", c:"Hendaye", t:"hostel"},
+        {n:"Hostel Demain c'est Loin", c:"Hendaye", t:"hostel"},
+        {n:"Hôtel Valencia", c:"Hendaye", t:"hotel"},
+        {n:"Hôtel Ibaia", c:"Hendaye", t:"hotel"},
+        {n:"Hôtel & Spa Serge Blanco", c:"Hendaye", t:"hotel"},
+        {n:"Hôtel Bergeret Sport", c:"Hendaye", t:"hotel"},
+        {n:"Résidence Mer & Golf Sokoburu", c:"Hendaye", t:"res"},
+        {n:"Camping Ametza", c:"Hendaye", t:"camping"},
+        {n:"Campanile Hendaye", c:"Hendaye", t:"hotel"}
+      ],
+      schools: [
+        {n:"École du Surf Français Hendaia", c:"Hendaye", k:"surf", u:"https://www.ecoledesurf-hendaye.com/"},
+        {n:"École de Surf Gold Coast", c:"Hendaye", k:"surf"},
+        {n:"Ocean Beach", c:"Hendaye", k:"surf"},
+        {n:"École de surf Lehena", c:"Hendaye", k:"surf"},
+        {n:"École de surf Txingudi", c:"Hendaye", k:"surf"},
+        {n:"Surf Division", c:"Hendaye", k:"surf"},
+        {n:"Aquality School", c:"Côte basque", k:"surf"}
+      ]
+    }
+  };
+
+  // Rattachement spot → zone (plusieurs spots proches partagent la même zone)
+  const SPOT_ZONE = {
+    "Biscarrosse-Plage":"bisca", "Mimizan Plage":"mimizan", "Contis-Plage":"contis",
+    "Étang de Léon":"leon", "Vielle-Saint-Girons":"stgirons",
+    "Moliets-et-Maa":"moliets", "Messanges":"moliets", "Vieux-Boucau":"moliets",
+    "Port d'Albret / Soustons":"soustons",
+    "Seignosse — Les Bourdaines":"seignosse", "Seignosse — Le Penon":"seignosse",
+    "Hossegor — La Gravière":"hossegor", "Hossegor — La Nord":"hossegor",
+    "Capbreton":"capbreton",
+    "Labenne-Océan":"labenne", "Ondres-Plage":"labenne", "Tarnos — Le Métro":"labenne",
+    "Anglet — Chambre d'Amour":"anglet", "Anglet — Sables d'Or":"anglet",
+    "Biarritz — Côte des Basques":"biarritz", "Biarritz — Grande Plage":"biarritz",
+    "Bidart — Parlementia":"bidart", "Guéthary — Avalanche":"bidart",
+    "Saint-Jean-de-Luz — Lafitenia":"sjdl", "Hendaye Plage":"hendaye"
+  };
+
+  const STAY_TYPES = {
+    fr:{camp:"Surf camp / lodge", hostel:"Auberge", hotel:"Hôtel", camping:"Camping", res:"Résidence / appart"},
+    en:{camp:"Surf camp / lodge", hostel:"Hostel", hotel:"Hotel", camping:"Campsite", res:"Apartments"}
+  };
+  const STAY_TAGS = { camp:["solo","amis"], hostel:["solo","budget"], hotel:["couple","famille"], camping:["famille","budget"], res:["famille","amis"] };
+  const SCHOOL_KINDS = {
+    fr:{surf:"Surf", wing:"Wingfoil", kite:"Kitesurf", voile:"Voile / windsurf", sup:"Stand-up paddle", efoil:"E-foil"},
+    en:{surf:"Surf", wing:"Wingfoil", kite:"Kitesurf", voile:"Sailing / windsurf", sup:"Stand-up paddle", efoil:"E-foil"}
+  };
+
+  // Les pros de la commune du spot passent en premier
+  function prosForSpot(spot, kind){
+    const zone = PRO_ZONES[SPOT_ZONE[spot.name]];
+    if (!zone) return [];
+    const town = spot.commune.split(",")[0].toLowerCase();
+    const list = zone[kind].slice();
+    return list.sort((a,b) => (b.c.toLowerCase().includes(town) ? 1 : 0) - (a.c.toLowerCase().includes(town) ? 1 : 0)).slice(0, 10);
+  }
+
+  // ── Suivi des clics vers les pros (anonyme : aucune donnée personnelle) ──
+  let wsSession = null;
+  try { wsSession = sessionStorage.getItem('ws_session'); } catch(e) {}
+  if (!wsSession) {
+    wsSession = Math.random().toString(36).slice(2, 10);
+    try { sessionStorage.setItem('ws_session', wsSession); } catch(e) {}
+  }
+  const PRO_LINKS = {}; // id → données du lien
+  let proLinkSeq = 0;
+
+  function withUtm(url, spotName){
+    try {
+      const u = new URL(url);
+      u.searchParams.set('utm_source', 'wildspots');
+      u.searchParams.set('utm_medium', 'referral');
+      u.searchParams.set('utm_campaign', spotName.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9]+/g,'-').toLowerCase());
+      return u.toString();
+    } catch(e) { return url; }
+  }
+
+  function proLink(spot, pro, proType, linkKind){
+    const id = 'pl' + (proLinkSeq++);
+    const href = linkKind === 'site'
+      ? withUtm(pro.u, spot.name)
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pro.n.replace(/\s*\(.*\)/, '') + ', ' + pro.c.replace(/\s*\(.*\)/, ''))}`;
+    PRO_LINKS[id] = { spot: spot.name, pro_name: pro.n, pro_town: pro.c, pro_type: proType, link_kind: linkKind, url: href };
+    return `<a class="call-btn" href="${href}" target="_blank" rel="noopener" data-pro="${id}">`;
+  }
+
+  document.addEventListener('click', (ev) => {
+    const a = ev.target.closest && ev.target.closest('a[data-pro]');
+    if (!a) return;
+    const info = PRO_LINKS[a.dataset.pro];
+    if (!info || !supabaseClient) return;
+    supabaseClient.from('clicks').insert({ ...info, lang, session_id: wsSession }).then(({ error }) => {
+      if (error) console.warn('WildSpots : clic non enregistré', error.message);
+    });
+  });
+
+  function prosHtml(spot, kind){
+    const items = prosForSpot(spot, kind);
+    if (!items.length) return "";
+    return `
+      <p class="stays-note">${t('staysNote')}</p>
+      <div class="stays-list">
+        ${items.map(p => `
+          <div class="stay-item">
+            <div class="stay-top"><b class="stay-name">${p.n}</b><span class="stay-type">${kind === 'stays' ? STAY_TYPES[lang][p.t] : SCHOOL_KINDS[lang][p.k]} · ${p.c}</span></div>
+            ${kind === 'stays' ? `<div class="stay-tags">${(STAY_TAGS[p.t] || []).map(g => `<span class="stay-tag">${t('tag' + g.charAt(0).toUpperCase() + g.slice(1))}</span>`).join("")}</div>` : ""}
+            <div class="contact-row">
+              ${proLink(spot, p, kind === 'stays' ? 'hebergement' : 'ecole', 'maps')}📇 ${t('proCard')}</a>
+              ${p.u ? `${proLink(spot, p, kind === 'stays' ? 'hebergement' : 'ecole', 'site')}🌐 ${t('proSite')}</a>` : ""}
+              ${p.phone ? `<a class="call-btn" href="tel:${telHref(p.phone)}">📞 ${t('callBtn')}</a>` : ""}
+            </div>
+          </div>`).join("")}
+      </div>`;
   }
 
   // Avis + validations : mis en cache ici après chargement depuis Supabase (ou en mémoire locale si non configuré)
@@ -1810,45 +2279,12 @@
 
     const transportBody = `<p class="popup-transport">${d.transport || "—"}</p><div id="controls-${idx}-transport">${sectionControls(idx, "transport")}</div>`;
 
-    const staysHtml = (spot.stays && spot.stays.length) ? `
-      <p class="stays-note">${t('staysNote')}</p>
-      <div class="stays-list">
-        ${spot.stays.map(h => `
-          <div class="stay-item">
-            <div class="stay-top"><b class="stay-name">${h.name}</b><span class="stay-type">${h.type[lang] || h.type.fr}</span></div>
-            <div class="stay-tags">${h.tags.map(g => `<span class="stay-tag">${t('tag' + g.charAt(0).toUpperCase() + g.slice(1))}</span>`).join("")}</div>
-            <div class="stay-where">${h.where[lang] || h.where.fr}</div>
-            <a class="call-btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(h.name + ', ' + (h.city || spot.commune))}" target="_blank" rel="noopener">🔎 ${t('viewContact')}</a>
-          </div>`).join("")}
-      </div>
+    const staysList = prosHtml(spot, 'stays');
+    const hebergementBody = staysList ? `${staysList}
       <div id="controls-${idx}-hebergement">${sectionControls(idx, "hebergement")}</div>` : "";
 
-    const hebergementBody = staysHtml || (spot.stay ? `
-      <div class="popup-links">
-        <a class="link-card link-card-primary" href="${spot.stay.url}" target="_blank" rel="noopener">
-          <span class="link-kind">${t('linkVerifie')}</span>
-          <span class="link-name">${spot.stay.name}</span>
-          <span class="link-type">${KIND_LABELS[lang][inferKind(spot.stay.name)]}</span>
-          ${spot.stay.distance ? `<span class="link-distance">📍 ${spot.stay.distance}</span>` : ""}
-          <span class="link-price">${inferPrice(inferKind(spot.stay.name))} <i>${t('estimationIA')}</i></span>
-          <span class="link-cta">${t('linkTarifs')}</span>
-        </a>
-      </div>
-      <div id="controls-${idx}-hebergement">${sectionControls(idx, "hebergement")}</div>` : "");
-
-    const ecoleBody = spot.school ? `
-      <div class="popup-links">
-        <a class="link-card" href="${spot.school.url}" target="_blank" rel="noopener">
-          <span class="link-kind">${t('linkVerifie')}</span>
-          <span class="link-name">${spot.school.name}</span>
-          <span class="link-cta">${t('linkSiteOfficiel')}</span>
-        </a>
-        ${spot.school.address ? `<p class="school-address">📍 ${spot.school.address}</p>` : ""}
-        <div class="contact-row">
-          ${spot.school.phone ? `<a class="call-btn" href="tel:${telHref(spot.school.phone)}">📞 ${t('callBtn')}</a>` : ""}
-          ${spot.school.address ? `<a class="call-btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(spot.school.name.replace(/\s*\(.*\)/, '') + ', ' + spot.school.address)}" target="_blank" rel="noopener">🧭 ${t('routeBtn')}</a>` : ""}
-        </div>
-      </div>
+    const schoolsList = prosHtml(spot, 'schools');
+    const ecoleBody = schoolsList ? `${schoolsList}
       <div id="controls-${idx}-ecole">${sectionControls(idx, "ecole")}</div>` : "";
 
     const budgetBody = budget ? (fullBudget ? `
@@ -1890,8 +2326,8 @@
           ${accordion(`anchor-technique-${idx}`, t('secTechnique'), `<span id="status-${idx}-technique">${statusBadge(idx, "technique")}</span>`, technicheBody)}
           ${pr ? accordion(`anchor-acces-${idx}`, t('secAcces'), `<span class="badge badge-officiel">${t('badgeOfficiel')}</span>`, accesBody) : ""}
           ${accordion(`anchor-transport-${idx}`, t('secTransport'), `<span id="status-${idx}-transport">${statusBadge(idx, "transport")}</span>`, transportBody)}
-          ${spot.stay ? accordion(`anchor-hebergement-${idx}`, t('secHebergement'), `<span id="status-${idx}-hebergement">${statusBadge(idx, "hebergement")}</span>`, hebergementBody) : ""}
-          ${spot.school ? accordion(`anchor-ecole-${idx}`, t('secEcole'), `<span id="status-${idx}-ecole">${statusBadge(idx, "ecole")}</span>`, ecoleBody) : ""}
+          ${hebergementBody ? accordion(`anchor-hebergement-${idx}`, t('secHebergement'), `<span id="status-${idx}-hebergement">${statusBadge(idx, "hebergement")}</span>`, hebergementBody) : ""}
+          ${ecoleBody ? accordion(`anchor-ecole-${idx}`, t('secEcole'), `<span id="status-${idx}-ecole">${statusBadge(idx, "ecole")}</span>`, ecoleBody) : ""}
           ${spot.tip ? accordion(`anchor-bonplan-${idx}`, t('secBonPlan'), `<span class="badge badge-ia">${t('badgeIA')}</span>`, `<p class="popup-tip">💡 ${d.tip}</p>`) : ""}
           ${accordion(`anchor-avis-${idx}`, t('secAvis'), `<span class="badge badge-communaute">${lang === 'fr' ? 'Communauté' : 'Community'}</span>`, avisBody)}
           ${accordion(`anchor-suggest-${idx}`, t('secSuggest'), `<span class="badge badge-communaute">${lang === 'fr' ? 'Communauté' : 'Community'}</span>`, suggestBody)}
